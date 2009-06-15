@@ -1,23 +1,27 @@
 require 'optparse'
+require 'tendersync/session'
+require 'tendersync/document'
 
 class Tendersync::Runner
   class Error < StandardError; end
+  attr_reader :dry_run
   
-  def initialize
-    parse_options
-  end
-  
-  def parse_options
+  def initialize argv
+
     @dry_run  = false
-    @sections = Sections
+    @sections = []
     @username, @password = File.open(".login","r") { |f| f.read.chomp.split(":") } if File.exists? ".login"
+    
+   
+    settings = load_config_file
+
     option_parser = OptionParser.new do |op|
       op.banner += " command\n"
       op.on('-n',                                  "Dry run" )       {        @dry_run  = true }
-      op.on('-r', '--root',    '=PATH',    String, "Document root" ) { |dirt| @root = dir }
+      op.on('-r', '--root',    '=PATH',    String, "Document root" ) { |dirt| settings['root'] = dir }
       op.on('-s', '--sections','=SECTIONS',Array,  "Sections" )      { |list| @sections = list }
-      op.on('-u', '--username','=EMAIL',   String, "Login e-mail (#{@username})" ) {|str| @username = str }
-      op.on('-p', '--password','=PASS',    String,  "Login password" )  {|str| @password = str }
+      op.on('-u', '--username','=EMAIL',   String, "Login e-mail (#{@username})" ) {|str| settings['username'] = str }
+      op.on('-p', '--password','=PASS',    String,  "Login password" )  {|str| settings['password'] = str }
         %Q{
     Commands:
 
@@ -30,17 +34,20 @@ class Tendersync::Runner
         create permalink     -- create a new tender document with the specified permalink in the section
                                 specified by --section=... (must be only one.)
 
-    Valid sections are #{Sections.join(', ')}.
     }.split(/\n/).each {|line| op.separator line.chomp }
     end
     
-    @command,*@args = *option_parser.parse(ARGV)
+    @username = settings['username']
+    @password = settings['password']
+    @dochome = settings['dochome']
+    @root = settings['root']
+    
+    @command,*@args = *option_parser.parse(argv)
+    
     if @username.nil? || @password.nil? || @username.empty? || @password.empty?
       raise Error, "Please enter a username and password.  You only need to do this once."
     else
-      File.open(".login","w") do |f|
-        f.puts("#{@username}:#{@password}") 
-      end
+      save_config_file
     end
   end
   
@@ -64,6 +71,7 @@ class Tendersync::Runner
       @session.ls section
     end
   end
+  
   def pull
     if @args.size > 0
       @args.each do |url|
@@ -156,6 +164,18 @@ EOF
         puts "indexing #{section} and posting to tender..."
         @session.post(Document.index(section).save)
       end
+    end
+  end
+  def load_config_file
+    if File.exists? ".login"
+      File.open(".tendersync", "r") { |f| settings = YAML.load(f) }
+    else
+      {}
+    end
+  end
+  def save_config_file
+    File.open(".tendersync","w") do |f|
+      f.write(settings.to_yaml)
     end
   end
 end

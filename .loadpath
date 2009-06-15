@@ -3,4 +3,5 @@
 	<pathentry excluding="lib/" path="" type="src"/>
 	<pathentry path="lib" type="src"/>
 	<pathentry path="org.rubypeople.rdt.launching.RUBY_CONTAINER" type="con"/>
+	<pathentry path="GEM_LIB/rspec-1.2.0/lib" type="var"/>
 </loadpath>
