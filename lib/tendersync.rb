@@ -4,3 +4,5 @@ $:.unshift(File.dirname(__FILE__)) unless
 module Tendersync
   VERSION = '1.0.0'
 end
+require 'tendersync/session'
+require 'tendersync/document'

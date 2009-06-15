@@ -1,8 +1,9 @@
-class A_document < Hash
+class Tendersync::Document < Hash
   #
   # Basically a bag of values, like an OpenStruct
   #
-  Fields = [:document_id,:title,:permalink,:keywords,:body]
+  Fields = %w[document_id title permalink keywords body]
+  
   def method_missing(meth,*args)
     if args.empty? and has_key? meth
       self[meth]
@@ -12,6 +13,7 @@ class A_document < Hash
       super
     end
   end
+  
   def initialize(values)
     super.update(values)
   end
@@ -46,7 +48,7 @@ class A_document < Hash
     new(values)
   end
   #
-  # Can be scraped from filled into a form
+  # Can be scraped from a form
   #
   def self.from_form(section,form)
     values = {
@@ -72,7 +74,7 @@ class A_document < Hash
   # The class (w. $root/section) is a collection and can create an index
   #
   def self.each(section)
-    Dir.glob("#{$root}/#{section}/*").each { |f| yield A_document.read_from(f) }
+    Dir.glob("#{$root}/#{section}/*").each { |f| yield Document.read_from(f) }
   end
   def self.index(section)
     raise "FixMe: Document ID & subheadings for index hardcoded for RPM documentation only." unless section == 'docs'
@@ -92,10 +94,10 @@ class A_document < Hash
         else
           print "Link needed: #{title}:#{text}\n" if level == 2 and !link
           kind = case title
-                 when / page$/i:               :pages
-                 when /instal|config|custom/i: :install
-                 else                          :advanced
-                 end
+            when / page$/i:               :pages
+            when /instal|config|custom/i: :install
+          else                          :advanced
+          end
           toc[kind] ||= {}
           toc[kind][title] ||= []
           toc[kind][title] << [text,link] if level == 2
@@ -103,29 +105,29 @@ class A_document < Hash
         end
       } unless document.permalink =~ /knowledge-base-table-of-contents/
     }
-    toc_document = A_document.new(
+    toc_document = Document.new(
                                   :section => section,
                                   :document_id => 1920,
                                   :title => "Knowledge Base Table of Contents",
                                   :permalink => "knowledge-base-table-of-contents",
                                   :keywords => "TOC TableOfContents",
                                   :body => "\n\n"+[:install,:pages,:advanced].collect { |k| [
-                                                                                             case k
-                                                                                             when :install  : "## Installation and configuration\n"
-                                                                                             when :pages    : "## Page by page tour of RPM\n"
-                                                                                             when :advanced : "## Advanced topics\n"
-                                                                                             end,
-                                                                                             toc[k].keys.sort.collect { |s| [
+      case k
+        when :install  : "## Installation and configuration\n"
+        when :pages    : "## Page by page tour of RPM\n"
+        when :advanced : "## Advanced topics\n"
+        end,
+        toc[k].keys.sort.collect { |s| [
                                                                                                                              "### [#{(s+']').ljust(40)} (#{link_root[s]})",
-                                                                                                                             toc[k][s].collect {|h| 
+          toc[k][s].collect {|h| 
                                                                                                                                "* [#{(h[0]+']').ljust(42)} (#{link_root[s]}##{h[1]})"
-                                                                                                                             },
+          },
                                                                                                                              ""
-                                                                                                                            ]},
+          ]},
                                                                                              "",
                                                                                              "", 
-                                                                                            ]}.flatten.join("\n")
-                                  )
-    toc_document
+        ]}.flatten.join("\n")
+      )
+      toc_document
+    end
   end
-end
