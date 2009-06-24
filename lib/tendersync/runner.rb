@@ -1,6 +1,9 @@
+require 'rubygems'
 require 'optparse'
 require 'tendersync/session'
 require 'tendersync/document'
+require 'mechanize'
+require 'yaml'
 
 class Tendersync::Runner
   class Error < StandardError; end
@@ -11,55 +14,67 @@ class Tendersync::Runner
     @dry_run  = false
     @sections = []
     @username, @password = File.open(".login","r") { |f| f.read.chomp.split(":") } if File.exists? ".login"
-    
    
     settings = load_config_file
 
-    option_parser = OptionParser.new do |op|
+    @parser = OptionParser.new do |op|
       op.banner += " command\n"
-      op.on('-n',                                  "Dry run" )       {        @dry_run  = true }
-      op.on('-r', '--root',    '=PATH',    String, "Document root" ) { |dirt| settings['root'] = dir }
-      op.on('-s', '--sections','=SECTIONS',Array,  "Sections" )      { |list| @sections = list }
-      op.on('-u', '--username','=EMAIL',   String, "Login e-mail (#{@username})" ) {|str| settings['username'] = str }
-      op.on('-p', '--password','=PASS',    String,  "Login password" )  {|str| settings['password'] = str }
+      op.on('-n',                                  "dry run" )       { @dry_run  = true }
+      op.on('-s', '--sections','=SECTIONS',Array,  "section names, comma separated" ) { |list| @sections = list }
+      op.on('-u', '--username','=EMAIL',   String, "*login e-mail" ) {|str| settings['username'] = str }
+      op.on('-p', '--password','=PASS',    String, "*password" )     {|str| settings['password'] = str }
+      op.on(      '--root',    '=PATH',    String, "*document root" ) { |dir| settings['root'] = dir }
+      op.on(      '--docurl',  '=URL',     String,  "*tender site URL" ) { |dir| settings['docurl'] = dir }
         %Q{
+        * saved in .tendersync file for subsequent default
+        
     Commands:
 
-        pull [url, url...]   -- download documents from tender; specify a section, a page URL, or
+        pull [URL, URL...]   -- download documents from tender; specify a section, a page URL, or
                                 nothing to download all documents
-        index                -- index specified session (presently only works with --section=docs)
-        post document-names  -- post the specified document to tender; names may include wild cards
+        ls                   -- list files in specified session (presently only works with --section=docs)
+        post PATTERN         -- post the matching documents to tender
         irb                  -- drops you into IRB with a tender session & related classes (for hacking/
                                 one-time tasks).  Programmers only.
-        create permalink     -- create a new tender document with the specified permalink in the section
+        create PERMALINK     -- create a new tender document with the specified permalink in the section
                                 specified by --section=... (must be only one.)
 
     }.split(/\n/).each {|line| op.separator line.chomp }
     end
     
+    begin
+      @command,*@args = *@parser.parse(argv)
+    rescue OptionParser::InvalidOption => e
+      raise Error, e.message
+    end
+    
     @username = settings['username']
     @password = settings['password']
-    @dochome = settings['dochome']
+    @dochome = settings['docurl'] && settings['docurl'] =~ /^(http.*?)\/?/ && $1
     @root = settings['root']
-    
-    @command,*@args = *option_parser.parse(argv)
-    
-    if @username.nil? || @password.nil? || @username.empty? || @password.empty?
+
+    case
+      when ! @username
       raise Error, "Please enter a username and password.  You only need to do this once."
+      when ! @password
+      raise Error, "Please enter a password.  You only need to do this once."
+      when ! @dochome
+      raise Error, "Please enter a --docurl indicating the home page URL of your Tender docs.\n" +
+           "You only need to do this once."
     else
-      save_config_file
+      save_config_file(settings)
     end
   end
   
   def run
-    @session = Session.new
+    @session = Tendersync::Session.new @dochome
     case @command || 'help'
       when 'help'
-      raise Error, option_parser.to_s
+      raise Error, @parser.to_s
       when 'pull', 'post', 'create', 'irb', 'ls'
       send @command
     else
-      raise Error, option_parser.to_s
+      raise Error, "Unknown command: #{@command}\n\n#{@parser}"
     end
   end
   
@@ -134,7 +149,7 @@ class Tendersync::Runner
 
       Examples of crazy stuff you could try:
 
-          @session.pull_from_tender('troubleshooting')
+          @session.pull_from_tender('troubleshooting')  
 
           `git commit -a -m "Automatic synchronization with tender"`
           `git push`
@@ -173,7 +188,7 @@ EOF
       {}
     end
   end
-  def save_config_file
+  def save_config_file(settings)
     File.open(".tendersync","w") do |f|
       f.write(settings.to_yaml)
     end

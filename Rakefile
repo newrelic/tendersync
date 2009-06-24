@@ -14,6 +14,9 @@ Echoe.new('tendersync', Tendersync::VERSION) do |p|
 Tendersync is a utility...
 EOF
   p.version = Tendersync::VERSION
+  p.runtime_dependencies = [
+     ['mechanize','>= 0.9.3'],
+  ]
   #p.rubyforge_name       = p.name # TODO this is default value
   #p.extra_deps         = [
   #   ['activesupport','>= 2.0.2'],

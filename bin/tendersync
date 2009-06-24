@@ -7,4 +7,8 @@ require File.expand_path(File.dirname(__FILE__) + "/../lib/tendersync")
 
 require "tendersync/runner"
 
-Tendersync::Runner.new.run
+begin
+  Tendersync::Runner.new(ARGV.dup).run
+rescue Tendersync::Runner::Error => e
+  puts e.message
+end

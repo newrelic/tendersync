@@ -1,17 +1,17 @@
+
 class Tendersync::Session
-  def initialize
+  def initialize(site)
     @agent = WWW::Mechanize.new { |a| }
-    @site       = 'http://support.newrelic.com'
-    @login_site = 'http://rpm.newrelic.com'
+    @site       = site
+    @login_site = "#{site}/login"
   end
   def login
     return if @logged_in
-    @agent.
-    get("#{@login_site}/session/new").
-    form_with(:action => '/session') { |login_form|
+    @agent.get(@login_site)
+    form_with(:action => '/login') { |login_form|
       login_form['email']    = $username 
       login_form['password'] = $password 
-    }.
+    }
     click_button
     @logged_in = true
   end
@@ -31,6 +31,9 @@ class Tendersync::Session
   end
   def edit_page_for(doc_url)
     get "#{@site}#{get(doc_url).links_like(%r{faqs/\d+/edit}).first}"
+  end
+  def all_sections
+    get "#{@site}/dashboard/sections"
   end
   def pull_from_tender(section)
     login
