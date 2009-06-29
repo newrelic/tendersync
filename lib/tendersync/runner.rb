@@ -10,20 +10,16 @@ class Tendersync::Runner
   attr_reader :dry_run
   
   def initialize argv
-
+    
     @dry_run  = false
     @sections = []
-    @username, @password = File.open(".login","r") { |f| f.read.chomp.split(":") } if File.exists? ".login"
-   
-    settings = load_config_file
-
+    
     @parser = OptionParser.new do |op|
       op.banner += " command\n"
       op.on('-n',                                  "dry run" )       { @dry_run  = true }
       op.on('-s', '--sections','=SECTIONS',Array,  "section names, comma separated" ) { |list| @sections = list }
       op.on('-u', '--username','=EMAIL',   String, "*login e-mail" ) {|str| settings['username'] = str }
       op.on('-p', '--password','=PASS',    String, "*password" )     {|str| settings['password'] = str }
-      op.on(      '--root',    '=PATH',    String, "*document root" ) { |dir| settings['root'] = dir }
       op.on(      '--docurl',  '=URL',     String,  "*tender site URL" ) { |dir| settings['docurl'] = dir }
         %Q{
         * saved in .tendersync file for subsequent default
@@ -50,9 +46,9 @@ class Tendersync::Runner
     
     @username = settings['username']
     @password = settings['password']
-    @dochome = settings['docurl'] && settings['docurl'] =~ /^(http.*?)\/?/ && $1
+    @dochome = settings['docurl'] && settings['docurl'] =~ /^(http.*?)\/?$/ && $1
     @root = settings['root']
-
+    
     case
       when ! @username
       raise Error, "Please enter a username and password.  You only need to do this once."
@@ -62,12 +58,12 @@ class Tendersync::Runner
       raise Error, "Please enter a --docurl indicating the home page URL of your Tender docs.\n" +
            "You only need to do this once."
     else
-      save_config_file(settings)
+      settings.save!
     end
   end
   
   def run
-    @session = Tendersync::Session.new @dochome
+    @session = Tendersync::Session.new @dochome, @username, @password
     case @command || 'help'
       when 'help'
       raise Error, @parser.to_s
@@ -79,12 +75,9 @@ class Tendersync::Runner
   end
   
   private
-
+  
   def ls
-    @sections.each do |section|
-      puts ">> #{section}"
-      @session.ls section
-    end
+    @session.ls sections
   end
   
   def pull
@@ -97,7 +90,7 @@ class Tendersync::Runner
         doc.save unless @dry_run
       end
     else
-      @sections.each do |section|
+      sections.each do |section|
         puts "pulling #{section} docs ..."
         @session.pull_from_tender(section) unless @dry_run
       end
@@ -109,7 +102,7 @@ class Tendersync::Runner
       matches =  if doc_name =~ %r{/}
         [doc_name]
       else
-        Dir.glob("#{@root}/{#{@sections.join(',')}}/#{doc_name}*")
+        Dir.glob("#{@root}/{#{sections.join(',')}}/#{doc_name}*")
       end
       if matches.empty?
         print "No documents match #{doc_name}\n"
@@ -127,9 +120,9 @@ class Tendersync::Runner
   end
   
   def create
-    raise Error, "You must specify exactly one section to put the document in." if @sections.length != 1 
+    raise Error, "You must specify exactly one section to put the document in." if sections.length != 1 
     raise Error, "You must specify exactly one document permalink."             if args.length != 1 
-    section,permalink = @sections.first,args.first
+    section,permalink = sections.first,args.first
     filename = "#{@root}/#{section}/#{permalink}"
     if @dry_run
       puts "Create document #{permalink} in #{section} as #{filename}"
@@ -144,21 +137,20 @@ class Tendersync::Runner
   def irb
     puts <<EOF
 
-      Interesting classes: [Document,Session]
-      Interesting globals: [@root, @sections, @session]
+      Use $session to access the Tendersync::Session instance.
+      Use Tendersync::Document to manipulate documents local and remote.
 
       Examples of crazy stuff you could try:
 
-          @session.pull_from_tender('troubleshooting')  
+          puts $session.all_sections.inspect
 
-          `git commit -a -m "Automatic synchronization with tender"`
-          `git push`
+          $session.pull_from_tender('troubleshooting')  
 
-          @session.post(Document.index('docs').save)
+          $session.post(Tendersync::Document.index('docs').save)
 
-          Document.each { |d| print d.body.split(/\W/).join("\\n") }
+          Tendersync::Document.each { |d| print d.body.split(/\W/).join("\\n") }
 
-          doc = Document.read_from("\#{@root}/docs/agent-api")
+          doc = Tendersync::Document.read_from("./docs/agent-api")
           doc.body.gsub! /api/,"API"
           doc.save
 
@@ -166,14 +158,14 @@ EOF
     ARGV.clear
     require 'irb'
     require 'irb/completion'
+    $session = @session
+    $sections = sections
     IRB.start
   end
   def index
-    #      if @sections != %w{ docs }
-    #        raise Error, "Only the doc section can be indexed at present."
     if @dry_run
       # FIXME I think we should build the sections, and not post
-      puts "build index for #{@sections} and post to tender"
+      puts "build index for #{sections} and post to tender"
     else
       @args.each do |section|
         puts "indexing #{section} and posting to tender..."
@@ -181,16 +173,24 @@ EOF
       end
     end
   end
-  def load_config_file
-    if File.exists? ".login"
-      File.open(".tendersync", "r") { |f| settings = YAML.load(f) }
-    else
-      {}
-    end
+  def sections
+    @sections = @session.all_sections.keys if @sections.empty? 
+    @sections
   end
-  def save_config_file(settings)
-    File.open(".tendersync","w") do |f|
-      f.write(settings.to_yaml)
+  def settings
+    case
+      when @settings
+        return @settings 
+      when File.exists?(".tendersync")
+        File.open(".tendersync", "r") { |f| @settings = YAML.load(f) }
+      else
+        @settings = {}
     end
+    def @settings.save!
+      File.open(".tendersync","w") do |f|
+        f.write(self.to_yaml)
+      end
+    end
+    @settings
   end
 end

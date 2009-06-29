@@ -1,3 +1,5 @@
+require 'fileutils'
+
 class Tendersync::Document < Hash
   #
   # Basically a bag of values, like an OpenStruct
@@ -24,7 +26,8 @@ class Tendersync::Document < Hash
     Fields.collect { |field| "------------------------- #{field} ----------------------------\n#{self[field]}\n" }.join
   end
   def save
-    File.open("#{$root}/#{section}/#{permalink}",'w') { |f| f.print self }
+    FileUtils.mkdir_p section
+    File.open("#{section}/#{permalink}",'w') { |f| f.print self }
     self
   end
   def self.read_from(file_name)
@@ -70,11 +73,8 @@ class Tendersync::Document < Hash
       end
     }
   end
-  #
-  # The class (w. $root/section) is a collection and can create an index
-  #
   def self.each(section)
-    Dir.glob("#{$root}/#{section}/*").each { |f| yield Document.read_from(f) }
+    Dir.glob("#{section}/*").each { |f| yield Document.read_from(f) }
   end
   def self.index(section)
     raise "FixMe: Document ID & subheadings for index hardcoded for RPM documentation only." unless section == 'docs'
