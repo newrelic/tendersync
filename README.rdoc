@@ -1,27 +1,46 @@
 = tendersync
 
+This is still a work in progress.  
+
 * http://github.com/newrelic/tendersync
+
+All due regards, credit, thanks, etc., to the ENTP team for a great tool.
+
+Authors: Markus Roberts and Bill Kayser
 
 == DESCRIPTION:
 
 A utility that allows you to push/pull documents from the Tender /faq section so you can
-manage the source in a local repository.
+manage the source in a local repository.  Intended especially for use with git.
 
-== FEATURES/PROBLEMS:
+== FEATURES:
 
-* FIX (list of features or problems)
+* Enumerate the sections in a Tender app
+* Pull documents from a Tender app, section by section
+* Manage document meta-data, like keywords, in headers
+* Push changed versions to the server
+
+== TODO:
+
+* Gemspec
+* Build a table of contents automatically from one or more sections (wip)
 
 == SYNOPSIS:
 
-  FIX (code sample of usage)
+Create a working directory where you want to store the tender docs in a hierarchy
+and run tendersync from there.
+
+    tendersync -h
 
 == REQUIREMENTS:
 
-* FIX (list of requirements)
+* mechanize
+
+others? 
 
 == INSTALL:
 
-* FIX (sudo gem install, anything else)
+sudo gem install ...
 
 == LICENSE:
 
