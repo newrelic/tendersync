@@ -8,19 +8,17 @@ require File.dirname(__FILE__) + '/lib/tendersync'
 Echoe.new('tendersync', Tendersync::VERSION) do |p|
   p.author = 'Bill Kayser'
   p.email = 'bkayser@newrelic.com'
-  p.summary = "Utility for syncing files from ENTP's Tender site"
+  p.summary = "Utility for syncing and indexing files from ENTP's Tender site."
   p.url = 'http://www.newrelic.com'
   p.description = <<EOF
-Tendersync is a utility...
+tendersync is a utility for syncing files from ENTP's Tender site for managing customer facing documentation.
+It can be used to pull and push documents to a local repository as well as create indexes for each
+documentation section.
 EOF
   p.version = Tendersync::VERSION
   p.runtime_dependencies = [
      ['mechanize','>= 0.9.3'],
   ]
-  #p.rubyforge_name       = p.name # TODO this is default value
-  #p.extra_deps         = [
-  #   ['activesupport','>= 2.0.2'],
-  # ]
   p.development_dependencies = [
     ['newgem', ">= #{::Newgem::VERSION}"]
   ]

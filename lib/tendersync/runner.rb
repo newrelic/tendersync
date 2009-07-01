@@ -28,6 +28,7 @@ class Tendersync::Runner
 
         pull [URL, URL...]   -- download documents from tender; specify a section, a page URL, or
                                 nothing to download all documents
+        index section/file   -- create a master index of the given sections, writing to section/file
         ls                   -- list files in specified session (presently only works with --section=docs)
         post PATTERN         -- post the matching documents to tender
         irb                  -- drops you into IRB with a tender session & related classes (for hacking/
@@ -167,9 +168,10 @@ EOF
       # FIXME I think we should build the sections, and not post
       puts "build index for #{sections} and post to tender"
     else
-      @args.each do |section|
-        puts "indexing #{section} and posting to tender..."
-        @session.post(Document.index(section).save)
+      sections.each do |section|
+        doc = Tendersync::Document.index(section)
+        puts "indexing #{section}: #{doc.section}/#{doc.permalink}"
+        Document.index(section).save
       end
     end
   end

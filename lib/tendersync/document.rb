@@ -76,8 +76,14 @@ class Tendersync::Document < Hash
   def self.each(section)
     Dir.glob("#{section}/*").each { |f| yield Document.read_from(f) }
   end
-  def self.index(section)
-    raise "FixMe: Document ID & subheadings for index hardcoded for RPM documentation only." unless section == 'docs'
+  
+  def self.index_for(section_id, section_name)
+    Document.new(:section => section_id,
+                 :title => "#{section_name} Table of Contents",
+                 :permalink => "#{section_id}-table-of-contents",
+                 :keywords => "toc index")
+  end
+  def refresh_index
     toc = {}
     link_root = {}
     each(section) { |document|
@@ -111,23 +117,24 @@ class Tendersync::Document < Hash
                                   :title => "Knowledge Base Table of Contents",
                                   :permalink => "knowledge-base-table-of-contents",
                                   :keywords => "TOC TableOfContents",
-                                  :body => "\n\n"+[:install,:pages,:advanced].collect { |k| [
+                                  :body => body)
+    body ="\n\n"
+    io = StringIO.new 
+    [:install,:pages,:advanced].each do |k| 
       case k
-        when :install  : "## Installation and configuration\n"
-        when :pages    : "## Page by page tour of RPM\n"
-        when :advanced : "## Advanced topics\n"
-        end,
-        toc[k].keys.sort.collect { |s| [
-                                                                                                                             "### [#{(s+']').ljust(40)} (#{link_root[s]})",
-          toc[k][s].collect {|h| 
-                                                                                                                               "* [#{(h[0]+']').ljust(42)} (#{link_root[s]}##{h[1]})"
-          },
-                                                                                                                             ""
-          ]},
-                                                                                             "",
-                                                                                             "", 
-        ]}.flatten.join("\n")
-      )
-      toc_document
+        when :install  : io.puts "## Installation and configuration"
+        when :pages    : io.puts "## Page by page tour of RPM"
+        when :advanced : io.puts "## Advanced topics"
+      end
+      toc[k].keys.sort.each do |s| 
+        io.puts "### [#{(s+']').ljust(40)} (#{link_root[s]})"
+        toc[k][s].each do |h| 
+          io.puts "* [#{(h[0]+']').ljust(42)} (#{link_root[s]}##{h[1]})"
+        end
+        io.puts 
+        io.puts
+      end
     end
+    toc_document
   end
+end
