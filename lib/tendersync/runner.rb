@@ -7,7 +7,6 @@ require 'yaml'
 
 class Tendersync::Runner
   class Error < StandardError; end
-  attr_reader :dry_run
   
   def initialize argv
     
@@ -64,11 +63,12 @@ class Tendersync::Runner
   end
   
   def run
-    @session = Tendersync::Session.new @dochome, @username, @password
+    $session = Tendersync::Session.new @dochome, @username, @password
+    $dry_run = @dry_run
     case @command || 'help'
       when 'help'
       raise Error, @parser.to_s
-      when 'pull', 'post', 'create', 'irb', 'ls'
+      when *%w[pull post create irb ls index]
       send @command
     else
       raise Error, "Unknown command: #{@command}\n\n#{@parser}"
@@ -78,7 +78,7 @@ class Tendersync::Runner
   private
   
   def ls
-    @session.ls sections
+    $session.ls sections
   end
   
   def pull
@@ -86,14 +86,14 @@ class Tendersync::Runner
       @args.each do |url|
         section = url =~ /\/faqs\/([^\/]*)\// && $1
         raise Error, "Invalid URI for document: #{url}" if section.nil?
-        doc = Document.from_form(section, @session.edit_page_for(url).form_with(:action => /edit/))
+        doc = Document.from_form(section, $session.edit_page_for(url).form_with(:action => /edit/))
         puts "   #{doc.permalink}"
         doc.save unless @dry_run
       end
     else
       sections.each do |section|
         puts "pulling #{section} docs ..."
-        @session.pull_from_tender(section) unless @dry_run
+        $session.pull_from_tender(section) unless @dry_run
       end
     end
   end
@@ -115,7 +115,7 @@ class Tendersync::Runner
       if @dry_run
         print "post #{document.section}/#{document.permalink} to tender.\n"
       else
-        @session.post(document)
+        $session.post(document)
       end
     }
   end
@@ -130,7 +130,7 @@ class Tendersync::Runner
     else
       text = File.read(filename) rescue ""
       text = "Put Text Here" if text.strip.empty?
-      document = @session.create_document(section,permalink,text)
+      document = $session.create_document(section,permalink,text)
       document.save
     end
   end
@@ -159,7 +159,6 @@ EOF
     ARGV.clear
     require 'irb'
     require 'irb/completion'
-    $session = @session
     $sections = sections
     IRB.start
   end
@@ -168,15 +167,17 @@ EOF
       # FIXME I think we should build the sections, and not post
       puts "build index for #{sections} and post to tender"
     else
+      section_details = $session.all_sections
       sections.each do |section|
-        doc = Tendersync::Document.index(section)
+        doc = Tendersync::Document.index_for section, section_details[section]
         puts "indexing #{section}: #{doc.section}/#{doc.permalink}"
-        Document.index(section).save
+        doc.refresh_index
+        doc.save
       end
     end
   end
   def sections
-    @sections = @session.all_sections.keys if @sections.empty? 
+    @sections = $session.all_sections.keys if @sections.empty? 
     @sections
   end
   def settings

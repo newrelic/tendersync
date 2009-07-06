@@ -18,6 +18,9 @@ class Tendersync::Session
       login_form['password'] = @password 
     end
     result = f.submit
+    if result =~ /unable to login/i
+      raise Tendersync::Runner::Error, "login failed--bad credentials"
+    end
     # TODO Check the result for a valid login.
     @logged_in = true
   end
@@ -35,7 +38,8 @@ class Tendersync::Session
   # Get the URL's of documents in the given section.
   def documents(section)
     login
-    get("#{@site}/faqs/#{section}").links_like(%r{faqs/#{section}/.+}).collect { |url|"#{@site}#{url}" }
+    index = get("#{@site}/faqs/#{section}")
+    index.links_like(%r{faqs/#{section}/.+}).collect { |url|"#{@site}#{url}" }
   end
   def edit_page_for(doc_url)
     login
