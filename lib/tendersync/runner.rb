@@ -108,7 +108,7 @@ class Tendersync::Runner
       if matches.empty?
         print "No documents match #{doc_name}\n"
       else
-        matches.collect { |match| Document.read_from(match) }
+        matches.collect { |match| Document.read_from_file(match) }
       end
     }.flatten.compact
     documents.each { |document|
@@ -151,7 +151,7 @@ class Tendersync::Runner
 
           Tendersync::Document.each { |d| print d.body.split(/\W/).join("\\n") }
 
-          doc = Tendersync::Document.read_from("./docs/agent-api")
+          doc = Tendersync::Document.read_from_file("./docs/agent-api")
           doc.body.gsub! /api/,"API"
           doc.save
 

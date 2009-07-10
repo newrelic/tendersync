@@ -1,0 +1,13 @@
+------------------------- document_id ----------------------------
+1967
+------------------------- title ----------------------------
+I updated the agent and restarted Passenger but it didn't pick up the new agent.
+------------------------- permalink ----------------------------
+passenger_restart_issues
+------------------------- keywords ----------------------------
+passenger restart
+------------------------- body ----------------------------
+When you update the agent it's not enough to touch the Passenger `tmp/restart.txt` file.  You need to do a hard restart of apache for the change to take effect.
+
+Hope this helps.  If not, then I probably have no idea what I'm talking about and it's best just to move along and forget this ever happened.
+
