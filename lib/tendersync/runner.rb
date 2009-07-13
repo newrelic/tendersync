@@ -171,7 +171,7 @@ EOF
       sections.each do |section|
         doc = Tendersync::Document.index_for section, section_details[section]
         puts "indexing #{section}: #{doc.section}/#{doc.permalink}"
-        doc.refresh_index
+        doc.refresh_index []
         doc.save
       end
     end

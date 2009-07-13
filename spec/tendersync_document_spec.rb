@@ -7,6 +7,14 @@ describe Tendersync::Document do
     @doc_source = File.read("spec/fixtures/passenger_restart_issues")
   end
   
+  it "should generate an index" do
+    index = Tendersync::Document.new
+    doc = Tendersync::Document.load("doc", StringIO.new(@doc_source))
+    Tendersync::Document.stubs(:each).yields(doc)
+    index.refresh_index
+    index.body.should =~ /baba/
+  end
+  
   it "should load from a file" do
     doc = Tendersync::Document.load("doc", StringIO.new(@doc_source))
     doc.title.should == "I updated the agent and restarted Passenger but it didn't pick up the new agent."
@@ -14,17 +22,36 @@ describe Tendersync::Document do
     doc.keywords.should == 'passenger restart'
     doc.body.should =~ /^When you update/
   end
+  it "should print with fields" do
+    doc = Tendersync::Document.new :title => 'Title!', :body => "body!\nbody!"
+    doc.to_s.should == <<-DOC.gsub(/^\s+/,'')
+      ---------------------------- title ----------------------------
+      Title!
+      ---------------------------- body ----------------------------
+      body!\nbody!
+    DOC
+  end
   
   it "should load from a form" do
-    fields = { 'title' => 'title!', 'id' => '123', 'body' => 'body by\n\r bill'}.collect do | key, value |
+    fields = { 'faq[title]' => 'title!', 'faq[body]' => "body by\nbill"}.collect do | key, value |
       WWW::Mechanize::Form::Field.new(key, value)
     end
     form = stub(:action => '/faqs/123/edit', :fields => fields) 
     doc = Tendersync::Document.from_form("doc", form)
-    doc.keys.map{|k|k.to_s}.sort.should == %w[body document_id section title]
     doc.title.should == "title!"
-    doc.id.should == '123'
-    doc.body.should == "body by bill"
+    doc.document_id.should == '123'
+    doc.body.should == "body by\nbill"
+    doc.to_s.should == <<EOF.gsub(/^ */,'')
+---------------------------- section ----------------------------
+doc
+---------------------------- document_id ----------------------------
+123
+---------------------------- title ----------------------------
+title!
+---------------------------- body ----------------------------
+body by
+bill
+EOF
   end
-  
 end
+
