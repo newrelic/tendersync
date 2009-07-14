@@ -12,6 +12,7 @@ describe Tendersync::Document do
     doc = Tendersync::Document.load("doc", StringIO.new(@doc_source))
     Tendersync::Document.stubs(:each).yields(doc)
     index.refresh_index
+    puts index.to_s
     index.body.should =~ /baba/
   end
   

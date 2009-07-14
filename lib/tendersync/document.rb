@@ -7,10 +7,41 @@ class Tendersync::Document
   
   NUM_DASHES = 28 # the number of dashes in keyword fields
   
-  class Group
-    attr_reader :name, :title_regex
+  class TOCEntry
+    attr_reader :name, :link, :children, :level
+    attr_accessor :parent
+    def initialize name, link=nil, level=1
+      @name, @link, @level = name, link, level
+      @children = []
+    end
+    # Write this element and all children, recursively as bullet lists with links
+    def write_entries(io, indent = 0, doc_link = parent.link)
+      io.write " " * 4 * indent # indentation
+      io.write "* " # bullet
+      if link
+        io.puts "[#{name}](#{doc_link}##{self.link})"
+      else
+        io.puts name
+      end
+      children.each { | child | child.write_entries(io, indent+1, doc_link)}
+    end
+    def add child
+      if !parent || child.level > self.level
+        children << child
+        child.parent = self
+      else
+        parent.add(child)
+      end
+      child
+    end
+  end
+  
+  class Group < TOCEntry
+    attr_reader :title_regex
     def initialize(name, title_regex=//)
-      @name, @title_regex = name, title_regex
+      super(name)
+      @level = 0
+      @title_regex = title_regex
     end
     Default = Group.new('Other') 
   end
@@ -35,11 +66,13 @@ class Tendersync::Document
     end
     io.string
   end
+  
   def save
     FileUtils.mkdir_p section
     File.open("#{section}/#{permalink}",'w') { |f| f.print self }
     self
   end
+  
   def self.load(section, io)
     values = { :section => section }
     key = data = nil
@@ -89,6 +122,7 @@ class Tendersync::Document
       end
     }
   end
+  
   def self.each(section)
     Dir.glob("#{section}/*").each { |f| yield Tendersync::Document.read_from_file(f) }
   end
@@ -111,47 +145,49 @@ class Tendersync::Document
   #
   # If group_map is empty then headings will be sorted alphabetically
   # and not grouped.
-  def refresh_index(group_map=[])
-    toc = {}
+  def refresh_index(groups=[])
+    toc = groups + [Group::Default] # array of groups
     link_root = {}
     self.class.each(section) do |document|
       next if document.permalink =~ /-table-of-contents$/
       puts "processing #{document.permalink}..."
-      title,link = nil
       title = document.title
-      link_root[title] = document.permalink
-      document.body.scan(%r{<a name=(.*?)>|^(##+) *(.*?)\s*$}i) do
-        heading_level = $2 && $2.length
+      group = toc.detect { | g | title =~ g.title_regex }
+      doc_entry = TOCEntry.new title, document.permalink, 1
+      group.add doc_entry
+      last = doc_entry
+      link = nil
+      document.body.scan(%r{<a name=(.*?)>|^(#+)\s*(.*?)\s*$}i) do
         name = $1
+        heading_level = $2 && $2.length
         text = $3
+        puts "   >> #{heading_level}, #{text}"
         if name
+          # Record the link name for the next header
           link = eval(name)
-          puts "    bad link: #{link.inspect} in #{title}" if link =~ / /
         elsif heading_level == 1
           puts "  using level 1: #{title}:#{text}"
-        else
-          puts "  link recommended for #{title}:#{text}" if heading_level == 2 and !link
-          group_pair = group_map.detect { | regex, t | title =~ regex } 
-          group_title = (group_pair && group_pair.last) || 'Other'
-          toc[group_title] ||= {}
-          toc[group_title][title] ||= []
-          toc[group_title][title] << [text,link] if heading_level == 2
+          last = last.add(TOCEntry.new(text, link, heading_level)) 
+        elsif heading_level >= 2  # level 2
+          puts "  link recommended for #{text}" if !link
+          last = last.add(TOCEntry.new(text, link, heading_level)) 
           link = nil
         end
       end
     end
+    toc.reject! { | group | group.children.empty? }
+    # Now go through each group
     io = StringIO.new
     io.puts
-     (group_map << [ //, 'Other']).map do |regex, title |
-      puts "  #{title} section..."
-      next if toc[title].nil?
-      puts "     ...processing"
+    toc.each do | group |
+      puts "Generating #{group.name} group..."
       # Show the group heading unless there is only one group
-      io.puts "## #{title}" unless group_map.size == 1
-      toc[title].keys.sort.each do |s| 
-        io.puts "### [#{(s+']')}(#{link_root[s]})"
-        toc[title][s].each do |h| 
-          io.puts "* [#{(h[0]+']')}(#{link_root[s]}##{h[1]})"
+      io.puts "## #{group.name}" unless toc.size == 1
+      group.children.each do | doc_entry |
+        doc_link = doc_entry.link
+        io.puts "### [#{doc_entry.name}](#{doc_link})"
+        doc_entry.children.each do | doc_section |
+          doc_section.write_entries(io)
         end
         io.puts 
       end
@@ -162,4 +198,5 @@ class Tendersync::Document
       self.body = io.string
     end
   end
+  
 end

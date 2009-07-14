@@ -7,7 +7,25 @@ passenger_restart_issues
 ---------------------------- keywords ----------------------------
 passenger restart
 ---------------------------- body ----------------------------
-When you update the agent it's not enough to touch the Passenger `tmp/restart.txt` file.  You need to do a hard restart of apache for the change to take effect.
+
+# Summary of Problem
+
+When you update the agent it's not enough to touch the Passenger `tmp/restart.txt` file.  
+You need to do a hard restart of apache for the change to take effect.
+
+# How to Fix it
+
+Follow these detailed steps.
+
+## Shell 
+
+Open a shell.  No brainer
+
+## Execute touch
+
+Do touch tmp/restart.txt
+
+# Conclusion
 
 Hope this helps.  If not, then I probably have no idea what I'm talking about and it's best just to move along and forget this ever happened.
 
