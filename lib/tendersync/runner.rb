@@ -16,26 +16,30 @@ class Tendersync::Runner
     @parser = OptionParser.new do |op|
       op.banner += " command\n"
       op.on('-n',                                  "dry run" )       { @dry_run  = true }
-      op.on('-s', '--sections','=SECTIONS',Array,  "section names, comma separated" ) { |list| @sections = list }
-      op.on('-u', '--username','=EMAIL',   String, "*login e-mail" ) {|str| settings['username'] = str }
-      op.on('-p', '--password','=PASS',    String, "*password" )     {|str| settings['password'] = str }
-      op.on(      '--docurl',  '=URL',     String, "*tender site URL" ) { |dir| settings['docurl'] = dir }
+      op.on('-s', '--section', '=SECTION', String, "section, specify multiple separately" ) { |s| @sections << s }
+      op.on('-u', '--username','=EMAIL',   String, "* login e-mail" ) {|str| settings['username'] = str }
+      op.on('-p', '--password','=PASS',    String, "* password" )     {|str| settings['password'] = str }
+      op.on(      '--docurl',  '=URL',     String, "* tender site URL" ) { |dir| settings['docurl'] = dir }
       op.separator ""
-      op.on('-g', '--group',   '=TITLE;regex', String, "*map of regex to group title for TOC groups ") { | g |
+      op.separator "Indexing Options:"
+      op.on('-g', '--group',   '=TITLE;regex', String, "*map of regex to group title for TOC groups") do | g |
         pair = g.split(';')
         settings['groups'] << [pair.first, pair.last]
-      }
+      end
       op.on('-d', '--depth',   '=DEPTH', String, "*Number of levels to descend into a document being indexed") { | g | settings['depth'] = g.to_i }
       
+      
         %Q{
-        * saved in .tendersync file for subsequent default
-        
+    * saved in .tendersync file for subsequent default
+ 
     Commands:
 
         pull [URL, URL...]   -- download documents from tender; specify a section, a page URL, or
                                 nothing to download all documents
-        index section/file   -- create a master index of the given sections, writing to section/file
-        ls                   -- list files in specified session (presently only works with --section=docs)
+        index                -- create a master index of each section, writing to section/file; specify
+                                the sections with -s options; you can organize the TOC into groups by
+                                mapping document titles to groups via a regular expression with -g options
+        ls                   -- list files in specified session
         post PATTERN         -- post the matching documents to tender
         irb                  -- drops you into IRB with a tender session & related classes (for hacking/
                                 one-time tasks).  Programmers only.
@@ -85,7 +89,7 @@ class Tendersync::Runner
   private
   
   def ls
-    $session.ls sections
+    $session.ls *sections
   end
   
   def pull
@@ -143,7 +147,7 @@ class Tendersync::Runner
   end
   
   def irb
-    puts <<EOF
+    puts <<-EOF
 
       Use $session to access the Tendersync::Session instance.
       Use Tendersync::Document to manipulate documents local and remote.
@@ -156,13 +160,13 @@ class Tendersync::Runner
 
           $session.post(Tendersync::Document.index('docs').save)
 
-          Tendersync::Document.each { |d| print d.body.split(/\W/).join("\\n") }
+          Tendersync::Document.each { |d| puts d.body.split(/\W/).join("\\n") }
 
           doc = Tendersync::Document.read_from_file("./docs/agent-api")
           doc.body.gsub! /api/,"API"
           doc.save
 
-EOF
+    EOF
     ARGV.clear
     require 'irb'
     require 'irb/completion'
