@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'set'
+require 'yaml'
 
 class Tendersync::Document
   Properties = [:section, :document_id, :title, :permalink, :keywords, :body]
@@ -8,14 +9,18 @@ class Tendersync::Document
   NUM_DASHES = 28 # the number of dashes in keyword fields
   
   class TOCEntry
-    attr_reader :name, :link, :children, :level
+    attr_reader :name, :link, :level
     attr_accessor :parent
-    def initialize name, link=nil, level=1
-      @name, @link, @level = name, link, level
-      @children = []
+    def initialize name, link=nil, level=nil
+      @name = name
+      @link = link if link
+      @level = level if level
+    end
+    def children
+      @children ||= []
     end
     # Write this element and all children, recursively as bullet lists with links
-    def write_entries(io, indent = 0, doc_link = parent.link)
+    def write_entries(io, depth=1, indent = 0, doc_link = parent.link)
       io.write " " * 4 * indent # indentation
       io.write "* " # bullet
       if link
@@ -23,7 +28,7 @@ class Tendersync::Document
       else
         io.puts name
       end
-      children.each { | child | child.write_entries(io, indent+1, doc_link)}
+      children.each { | child | child.write_entries(io, depth-1, indent+1, doc_link)} unless depth == 1
     end
     def add child
       if !parent || child.level > self.level
@@ -39,11 +44,11 @@ class Tendersync::Document
   class Group < TOCEntry
     attr_reader :title_regex
     def initialize(name, title_regex=//)
-      super(name)
-      @level = 0
+      super(name, nil, nil)
       @title_regex = title_regex
     end
-    Default = Group.new('Other') 
+    Default = Group.new('Other')
+
   end
   
   def initialize(values={})
@@ -145,15 +150,23 @@ class Tendersync::Document
   #
   # If group_map is empty then headings will be sorted alphabetically
   # and not grouped.
-  def refresh_index(groups=[])
-    toc = groups + [Group::Default] # array of groups
+  #
+  # depth s the number of nested levels to descend into a document.
+  def refresh_index(groups=[], depth=2)
+    generate_index(create_toc(groups), depth)  
+  end
+  
+  private
+  
+  def create_toc(groups)
+    groups += groups + [Group::Default] # array of groups
     link_root = {}
     self.class.each(section) do |document|
       next if document.permalink =~ /-table-of-contents$/
-      puts "processing #{document.permalink}..."
+      puts "indexing #{document.permalink}..."
       title = document.title
-      group = toc.detect { | g | title =~ g.title_regex }
-      doc_entry = TOCEntry.new title, document.permalink, 1
+      group = groups.detect { | g | title =~ g.title_regex }
+      doc_entry = TOCEntry.new title, document.permalink, 0
       group.add doc_entry
       last = doc_entry
       link = nil
@@ -161,33 +174,33 @@ class Tendersync::Document
         name = $1
         heading_level = $2 && $2.length
         text = $3
-        puts "   >> #{heading_level}, #{text}"
         if name
           # Record the link name for the next header
           link = eval(name)
         elsif heading_level == 1
-          puts "  using level 1: #{title}:#{text}"
           last = last.add(TOCEntry.new(text, link, heading_level)) 
         elsif heading_level >= 2  # level 2
-          puts "  link recommended for #{text}" if !link
           last = last.add(TOCEntry.new(text, link, heading_level)) 
           link = nil
         end
       end
     end
-    toc.reject! { | group | group.children.empty? }
+    groups
+  end
+  
+  def generate_index(groups, depth)
+    groups.reject! { | group | group.children.empty? }
     # Now go through each group
     io = StringIO.new
     io.puts
-    toc.each do | group |
-      puts "Generating #{group.name} group..."
+    groups.each do | group |
       # Show the group heading unless there is only one group
-      io.puts "## #{group.name}" unless toc.size == 1
+      io.puts "## #{group.name}" unless groups.size == 1
       group.children.each do | doc_entry |
         doc_link = doc_entry.link
         io.puts "### [#{doc_entry.name}](#{doc_link})"
         doc_entry.children.each do | doc_section |
-          doc_section.write_entries(io)
+          doc_section.write_entries(io, depth)
         end
         io.puts 
       end
@@ -200,3 +213,4 @@ class Tendersync::Document
   end
   
 end
+

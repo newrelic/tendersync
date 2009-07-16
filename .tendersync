@@ -1,4 +1,12 @@
 --- 
 docurl: http://support.newrelic.com
+groups: 
+- - Installation and configuration
+  - /install|config|custom/i
+- - Page by page tour of RPM
+  - / page$/i
+- - Advanced topics
+  - //
+depth: 1
 username: bkayser@newrelic.com
 password: Bell10t

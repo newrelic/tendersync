@@ -9,17 +9,24 @@ class Tendersync::Runner
   class Error < StandardError; end
   
   def initialize argv
-    
     @dry_run  = false
     @sections = []
-    
+    @groups = []
+    settings['groups'] ||= []
     @parser = OptionParser.new do |op|
       op.banner += " command\n"
       op.on('-n',                                  "dry run" )       { @dry_run  = true }
       op.on('-s', '--sections','=SECTIONS',Array,  "section names, comma separated" ) { |list| @sections = list }
       op.on('-u', '--username','=EMAIL',   String, "*login e-mail" ) {|str| settings['username'] = str }
       op.on('-p', '--password','=PASS',    String, "*password" )     {|str| settings['password'] = str }
-      op.on(      '--docurl',  '=URL',     String,  "*tender site URL" ) { |dir| settings['docurl'] = dir }
+      op.on(      '--docurl',  '=URL',     String, "*tender site URL" ) { |dir| settings['docurl'] = dir }
+      op.separator ""
+      op.on('-g', '--group',   '=TITLE;regex', String, "*map of regex to group title for TOC groups ") { | g |
+        pair = g.split(';')
+        settings['groups'] << [pair.first, pair.last]
+      }
+      op.on('-d', '--depth',   '=DEPTH', String, "*Number of levels to descend into a document being indexed") { | g | settings['depth'] = g.to_i }
+      
         %Q{
         * saved in .tendersync file for subsequent default
         
@@ -50,11 +57,11 @@ class Tendersync::Runner
     @root = settings['root']
     
     case
-      when ! @username
+    when ! @username
       raise Error, "Please enter a username and password.  You only need to do this once."
-      when ! @password
+    when ! @password
       raise Error, "Please enter a password.  You only need to do this once."
-      when ! @dochome
+    when ! @dochome
       raise Error, "Please enter a --docurl indicating the home page URL of your Tender docs.\n" +
            "You only need to do this once."
     else
@@ -66,9 +73,9 @@ class Tendersync::Runner
     $session = Tendersync::Session.new @dochome, @username, @password
     $dry_run = @dry_run
     case @command || 'help'
-      when 'help'
+    when 'help'
       raise Error, @parser.to_s
-      when *%w[pull post create irb ls index]
+    when *%w[pull post create irb ls index]
       send @command
     else
       raise Error, "Unknown command: #{@command}\n\n#{@parser}"
@@ -163,17 +170,16 @@ EOF
     IRB.start
   end
   def index
-    if @dry_run
-      # FIXME I think we should build the sections, and not post
-      puts "build index for #{sections} and post to tender"
-    else
-      section_details = $session.all_sections
-      sections.each do |section|
-        doc = Tendersync::Document.index_for section, section_details[section]
-        puts "indexing #{section}: #{doc.section}/#{doc.permalink}"
-        doc.refresh_index []
-        doc.save
-      end
+    groups = settings['groups'].map do |title,regex|
+      regex = eval(regex) if regex =~ %r{^/.*/[a-z]*$}
+      Tendersync::Document::Group.new title, Regexp.new(regex)
+    end
+    section_details = $session.all_sections
+    sections.each do |section|
+      doc = Tendersync::Document.index_for section, section_details[section]
+      puts "indexing #{section}: #{doc.section}/#{doc.permalink}"
+      doc.refresh_index groups, settings['depth'] || 2
+      doc.save
     end
   end
   def sections
@@ -182,12 +188,12 @@ EOF
   end
   def settings
     case
-      when @settings
-        return @settings 
-      when File.exists?(".tendersync")
-        File.open(".tendersync", "r") { |f| @settings = YAML.load(f) }
-      else
-        @settings = {}
+    when @settings
+      return @settings 
+    when File.exists?(".tendersync")
+      File.open(".tendersync", "r") { |f| @settings = YAML.load(f) }
+    else
+      @settings = {}
     end
     def @settings.save!
       File.open(".tendersync","w") do |f|
