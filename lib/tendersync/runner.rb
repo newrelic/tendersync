@@ -34,13 +34,13 @@ class Tendersync::Runner
  
     Commands:
 
-        pull [URL, URL...]   -- download documents from tender; specify a section, a page URL, or
+        pull [URL, URL...]   -- download documents from tender; specify sections with -s, a page URL, or
                                 nothing to download all documents
         index                -- create a master index of each section, writing to section/file; specify
                                 the sections with -s options; you can organize the TOC into groups by
                                 mapping document titles to groups via a regular expression with -g options
         ls                   -- list files in specified session
-        post PATTERN         -- post the matching documents to tender
+        post PATTERN         -- post the matching documents to tender; use /regexp/ or glob
         irb                  -- drops you into IRB with a tender session & related classes (for hacking/
                                 one-time tasks).  Programmers only.
         create PERMALINK     -- create a new tender document with the specified permalink in the section
@@ -99,48 +99,50 @@ class Tendersync::Runner
         raise Error, "Invalid URI for document: #{url}" if section.nil?
         doc = Document.from_form(section, $session.edit_page_for(url).form_with(:action => /edit/))
         puts "   #{doc.permalink}"
-        doc.save unless @dry_run
+        doc.save unless $dry_run
       end
     else
       sections.each do |section|
         puts "pulling #{section} docs ..."
-        $session.pull_from_tender(section) unless @dry_run
+        $session.pull_from_tender(section)
       end
     end
   end
-  
+
   def post
     documents = args.collect { |doc_name|
       matches =  if doc_name =~ %r{/}
-        [doc_name]
+        Dir.glob(doc_name)
       else
         Dir.glob("#{@root}/{#{sections.join(',')}}/#{doc_name}*")
       end
       if matches.empty?
-        print "No documents match #{doc_name}\n"
+        puts "No documents match #{doc_name}"
       else
         matches.collect { |match| Document.read_from_file(match) }
       end
     }.flatten.compact
     documents.each { |document|
       if @dry_run
-        print "post #{document.section}/#{document.permalink} to tender.\n"
+        puts "would post #{document.section}/#{document.permalink} to tender."
       else
         $session.post(document)
       end
     }
   end
+  alias push post
   
   def create
     raise Error, "You must specify exactly one section to put the document in." if sections.length != 1 
     raise Error, "You must specify exactly one document permalink."             if args.length != 1 
     section,permalink = sections.first,args.first
     filename = "#{@root}/#{section}/#{permalink}"
-    if @dry_run
-      puts "Create document #{permalink} in #{section} as #{filename}"
+    text = File.read(filename) rescue ""
+    text = "Put Text Here" if text.strip.empty?
+    if $dry_run
+      puts "would create document #{permalink}\nin #{section} as #{filename}"
+      puts "\ntext:\n------------\n#{text}"
     else
-      text = File.read(filename) rescue ""
-      text = "Put Text Here" if text.strip.empty?
       document = $session.create_document(section,permalink,text)
       document.save
     end

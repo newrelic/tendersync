@@ -1,4 +1,9 @@
+== 1.0.1 2009-07-17
+
+* Indexing working
+* More command line options
+* Tests and Documentation
+
 == 1.0.0 2009-06-11
 
-* 1 major enhancement:
-  * Initial release, work in progress
+* First Release

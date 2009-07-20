@@ -64,7 +64,7 @@ class Tendersync::Session
       documents(section).collect do |doc_url|
         doc = Tendersync::Document.from_form(section,edit_page_for(doc_url).form_with(:action => /edit/))
         puts "   #{doc.permalink}"
-        doc.save
+        doc.save unless $dry_run
       end
     end
   end
@@ -82,7 +82,7 @@ class Tendersync::Session
     login
     form = edit_page_for("#{@site}/faqs/#{document.section}/#{document.permalink}").form_with(:action => /edit/)
     document.to_form(form)
-    form.submit
+    form.submit unless $dry_run
   end
   def create_document(section,permalink,body)
     login
@@ -94,6 +94,7 @@ class Tendersync::Session
             :body => body
     )
     document.to_form(form)
+    return if $dry_run
     form.radiobuttons_with(:value => Tender_id_for_section[section]).first.click
     form.submit
     Tendersync::Document.from_form(section,edit_page_for("#{@site}/faqs/#{section}/#{permalink}").form_with(:action => /edit/))
