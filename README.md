@@ -103,8 +103,31 @@ It will look something like this:
   * [Installing the Gem](agent-installation#Installing_the_Gem)
 </pre>
 
+#### Customizing the amount of detail in the Index
+
 You can show sections deeper than one level in a particular document
-using the -l option.
+using the `-d` option.  The default is 1.
+
+    tendersync index -d 2
+
+#### Definiting TOC groups
+
+If you want to divide the table of contents into groups of related
+documents, you can pass in a title for a group and a regular expression
+to match against document titles that belong in that group. These group
+definitions will be saved so you only need to enter them once.
+
+Enter a group using the `-g` option passing in a title and regular
+expression separated by a semi-colon.
+
+    tendersync index -g "Page Details;/page/i"
+
+You can add multiple groups with additional -g options:
+
+    tendersync index -g "Page Details;/page/i" -g "Installation Info;/installation/i"
+
+If you want to remove a group definition, you need to remove it 
+manually from the `.tendersync` file.
 
 ## THANKS
 

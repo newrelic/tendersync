@@ -15,7 +15,7 @@ Tendersync is a utility for syncing files from ENTP's Tender site for managing c
 
 # Generate all the Rake tasks
 # Run 'rake -T' to see list of generated tasks (from gem root directory)
-Echoe.new('tendersync', Tendersync::VERSION) do |p|
+Echoe.new(GEM_NAME, Tendersync::VERSION) do |p|
   p.author = AUTHOR
   p.email = EMAIL
   p.summary = SUMMARY
@@ -32,7 +32,7 @@ Echoe.new('tendersync', Tendersync::VERSION) do |p|
   p.development_dependencies = [
     ['newgem', ">= #{::Newgem::VERSION}"]
   ]
-  
+  p.ignore_pattern = %w[docs/** general/** troubleshooting/**]
   p.clean_pattern |= %w[**/.DS_Store tmp *.log]
 end
 
