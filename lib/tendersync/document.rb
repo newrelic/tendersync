@@ -122,8 +122,10 @@ class Tendersync::Document
   end
   def to_form(form)
     form.fields.each { |tf|
-      if field_name = tf.name[/faq\[(.*)\]/,1] and has_key? field_name.intern
-        tf.value = self.send(field_name.intern).each_line {|line| line.chomp }.join("\r\n")
+      if field_name = tf.name[/faq\[(.*)\]/,1] and self.send(field_name.intern)
+        lines = []
+        self.send(field_name.intern).each_line {|line| lines << line.chomp }
+        tf.value = lines.join("\r\n")
       end
     }
   end

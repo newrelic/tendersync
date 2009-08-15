@@ -110,7 +110,7 @@ class Tendersync::Runner
   end
 
   def post
-    documents = args.collect { |doc_name|
+    documents = @args.collect { |doc_name|
       matches =  if doc_name =~ %r{/}
         Dir.glob(doc_name)
       else
@@ -119,7 +119,7 @@ class Tendersync::Runner
       if matches.empty?
         puts "No documents match #{doc_name}"
       else
-        matches.collect { |match| Document.read_from_file(match) }
+        matches.collect { |match| Tendersync::Document.read_from_file(match) }
       end
     }.flatten.compact
     documents.each { |document|
@@ -134,8 +134,8 @@ class Tendersync::Runner
   
   def create
     raise Error, "You must specify exactly one section to put the document in." if sections.length != 1 
-    raise Error, "You must specify exactly one document permalink."             if args.length != 1 
-    section,permalink = sections.first,args.first
+    raise Error, "You must specify exactly one document permalink."             if @args.length != 1 
+    section,permalink = sections.first,@args.first
     filename = "#{@root}/#{section}/#{permalink}"
     text = File.read(filename) rescue ""
     text = "Put Text Here" if text.strip.empty?
