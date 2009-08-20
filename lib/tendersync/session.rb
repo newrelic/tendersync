@@ -11,7 +11,7 @@ class Tendersync::Session
   
   def login
     return if @logged_in
-    puts "logging in as #{@username}..."
+    puts "logging in to #{@login_site} as #{@username}..."
     page = @agent.get(@login_site)
     f = page.form_with(:action => '/login') do | login_form |
       login_form['email']    = @username 

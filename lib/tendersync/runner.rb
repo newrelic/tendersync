@@ -97,7 +97,7 @@ class Tendersync::Runner
       @args.each do |url|
         section = url =~ /\/faqs\/([^\/]*)\// && $1
         raise Error, "Invalid URI for document: #{url}" if section.nil?
-        doc = Document.from_form(section, $session.edit_page_for(url).form_with(:action => /edit/))
+        doc = Tendersync::Document.from_form(section, $session.edit_page_for(url).form_with(:action => /edit/))
         puts "   #{doc.permalink}"
         doc.save unless $dry_run
       end
