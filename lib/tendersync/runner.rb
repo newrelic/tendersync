@@ -22,13 +22,13 @@ class Tendersync::Runner
       op.on(      '--docurl',  '=URL',     String, "* tender site URL" ) { |dir| settings['docurl'] = dir }
       op.separator ""
       op.separator "Indexing Options:"
-      op.on('-g', '--group',   '=TITLE;regex', String, "*map of regex to group title for TOC groups") do | g |
+      op.on(       '--group',   '=TITLE;regex',  String, "*map of regex to group title for TOC groups") do | g |
         pair = g.split(';')
         settings['groups'] << [pair.first, pair.last]
       end
-      op.on('-d', '--depth',   '=DEPTH', String, "*Number of levels to descend into a document being indexed") { | g | settings['depth'] = g.to_i }
-      
-      
+      op.on(       '--name',  '=PERMALINK', String, "override the default name of the index page") { |n| @index_name = n }
+      op.on(       '--depth', '=DEPTH',     String, "*Number of levels to descend into a document being indexed") { | g | settings['depth'] = g.to_i }
+            
         %Q{
     * saved in .tendersync file for subsequent default
  
@@ -126,9 +126,11 @@ class Tendersync::Runner
       if @dry_run
         puts "would post #{document.section}/#{document.permalink} to tender."
       else
+        puts "uploading #{document.permalink}..."
         $session.post(document)
       end
     }
+    puts "...done"
   end
   alias push post
   
@@ -182,9 +184,9 @@ class Tendersync::Runner
     end
     section_details = $session.all_sections
     sections.each do |section|
-      doc = Tendersync::Document.index_for section, section_details[section]
+      doc = Tendersync::Document.index_for(section, section_details[section], @index_name)
       puts "indexing #{section}: #{doc.section}/#{doc.permalink}"
-      doc.refresh_index groups, settings['depth'] || 2
+      doc.refresh_index(groups, settings['depth'] || 1)
       doc.save
     end
   end
