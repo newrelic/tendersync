@@ -27,7 +27,11 @@ class Tendersync::Session
   
   def get(url)
     login
-    page = @agent.get(url)
+    begin
+      page = @agent.get(url)
+    rescue WWW::Mechanize::ResponseCodeError => e
+      raise Tendersync::Runner::Error, "Unable to get #{url}"
+    end
     def page.links_like(r)
       result = []
       links.each { |l| result << l.href if l.href =~ r }

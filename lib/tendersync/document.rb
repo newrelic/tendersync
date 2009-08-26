@@ -134,10 +134,11 @@ class Tendersync::Document
     Dir.glob("#{section}/*").each { |f| yield Tendersync::Document.read_from_file(f) }
   end
   
-  def self.index_for(section_id, section_name)
+  def self.index_for(section_id, section_name, permalink = nil)
+    permalink ||= "#{section_id}-table-of-contents"
     new(:section => section_id,
         :title => "#{section_name} Table of Contents",
-        :permalink => "#{section_id}-table-of-contents",
+        :permalink => permalink,
         :keywords => "toc index")
   end
   
@@ -161,7 +162,7 @@ class Tendersync::Document
   private
   
   def create_toc(groups)
-    groups += groups + [Group::Default] # array of groups
+    groups << Group::Default # array of groups
     link_root = {}
     self.class.each(section) do |document|
       next if document.permalink =~ /-table-of-contents$/
