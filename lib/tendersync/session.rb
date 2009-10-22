@@ -4,7 +4,7 @@ class Tendersync::Session
   def initialize(site, user, pass)
     @username = user
     @password = pass
-    @agent = WWW::Mechanize.new { |a| }
+    @agent = WWW::Mechanize.new { |a| a.auth(user, pass) }
     @site       = site
     @login_site = "#{site}/login"
   end
@@ -18,7 +18,7 @@ class Tendersync::Session
       login_form['password'] = @password 
     end
     result = f.submit
-    if result =~ /unable to login/i
+    if result.links.find { | l | l.href =~ /forgot_password/}
       raise Tendersync::Runner::Error, "login failed--bad credentials"
     end
     # TODO Check the result for a valid login.
@@ -66,7 +66,9 @@ class Tendersync::Session
     sections = all_sections.keys if sections.empty?
     for section in sections do 
       documents(section).collect do |doc_url|
-        doc = Tendersync::Document.from_form(section,edit_page_for(doc_url).form_with(:action => /edit/))
+        page =Tendersync::Document.from_form(section,edit_page_for(doc_url))
+        puts "Section: #{section}, page=#{page.inspect}"
+        doc = page.form_with(:action => /edit/)
         puts "   #{doc.permalink}"
         doc.save unless $dry_run
       end
@@ -84,7 +86,9 @@ class Tendersync::Session
   end
   def post(document)
     login
-    form = edit_page_for("#{@site}/faqs/#{document.section}/#{document.permalink}").form_with(:action => /edit/)
+    page = "#{@site}/faqs/#{document.section}/#{document.permalink}"
+    form = edit_page_for(page).form_with(:action => /edit/)
+    raise "Unable to load form for page: #{page}" unless form
     document.to_form(form)
     form.submit unless $dry_run
   end

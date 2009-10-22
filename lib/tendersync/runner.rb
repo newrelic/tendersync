@@ -179,6 +179,7 @@ class Tendersync::Runner
   end
   def index
     groups = settings['groups'].map do |title,regex|
+      raise "No regex specified for #{title}" if !regex || regex.empty?
       regex = eval(regex) if regex =~ %r{^/.*/[a-z]*$}
       Tendersync::Document::Group.new title, Regexp.new(regex)
     end
