@@ -1,7 +1,5 @@
 require 'rubygems'
 require 'optparse'
-require 'tendersync/session'
-require 'tendersync/document'
 require 'mechanize'
 require 'yaml'
 

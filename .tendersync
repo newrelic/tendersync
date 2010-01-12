@@ -1,5 +1,4 @@
 --- 
-docurl: http://support.newrelic.com
 groups: 
 - - Installation and configuration
   - /install|config|custom/i
@@ -7,6 +6,7 @@ groups:
   - / page$/i
 - - Advanced topics
   - //
+docurl: http://support.newrelic.com
 depth: 1
 username: bkayser@newrelic.com
 password: Bell10t

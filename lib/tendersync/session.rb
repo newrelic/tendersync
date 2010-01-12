@@ -1,4 +1,3 @@
-
 class Tendersync::Session
   attr_reader :agent
   def initialize(site, user, pass)
