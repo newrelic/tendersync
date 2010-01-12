@@ -79,10 +79,18 @@ class Tendersync::Session
       end
     end
   end
+
+  def get_section_id(section)
+    page = get("#{@site}/dashboard/sections/#{section}")    
+    form = page.form_with(:action => "/dashboard/sections/#{section}")    
+    form.form_node.to_s =~ /id="edit_section_(.*?)"/
+    $1    
+  end
     
   # Print out a list of all documents
   def ls(*sections)
     sections = all_sections.keys if sections.empty?
+    
     sections.each do | section |
       puts "Section #{section}"
       documents(section).map {|url| url =~ %r{/([^/]*)$}  && $1 }.each do |link|
@@ -98,18 +106,24 @@ class Tendersync::Session
     document.to_form(form)
     form.submit unless $dry_run
   end
-  def create_document(section,permalink,body)
+  def create_document(section,permalink,body, title)
     login
     form = get("#{@site}/faq/new").form_with(:action => "/faqs")
+
+    puts "Using default Title..." if title.nil?
+    title = "New Tendersync::Document" if title.nil?
     document = Tendersync::Document.new(
             :section => section,
-            :title => "New Tendersync::Document",
+            :title => title,
             :permalink => permalink,
             :body => body
     )
     document.to_form(form)
     return if $dry_run
-    form.radiobuttons_with(:value => Tender_id_for_section[section]).first.click
+    
+    id = get_section_id(section)
+    
+    form.radiobuttons_with(:value => id).first.click
     form.submit
     Tendersync::Document.from_form(section,edit_page_for("#{@site}/faqs/#{section}/#{permalink}").form_with(:action => /edit/))
   end

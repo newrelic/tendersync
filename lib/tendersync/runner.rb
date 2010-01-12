@@ -135,18 +135,23 @@ Version #{Tendersync::VERSION}
   alias push post
   
   def create
-    raise Error, "You must specify exactly one section to put the document in." if sections.length != 1 
-    raise Error, "You must specify exactly one document permalink."             if @args.length != 1 
+    raise Error, "You must specify exactly one section to put the document in." if sections.length != 1
+    raise Error, "You must specify one document permalink."             if @args.length == 0
     section,permalink = sections.first,@args.first
+    title = @args.last unless @args.length == 1#ignore the permalink and use default title
     filename = "#{@root}/#{section}/#{permalink}"
+    filename = "#{section}/#{permalink}" if @root.nil?
+    puts "Checking for : #{filename}..."
+    puts "Creating default body as file not found to parse out text." unless File.exist?(filename)
     text = File.read(filename) rescue ""
     text = "Put Text Here" if text.strip.empty?
     if $dry_run
       puts "would create document #{permalink}\nin #{section} as #{filename}"
       puts "\ntext:\n------------\n#{text}"
     else
-      document = $session.create_document(section,permalink,text)
+      document = $session.create_document(section,permalink,text, title)
       document.save
+      puts "Uploaded file successfully."
     end
   end
   
