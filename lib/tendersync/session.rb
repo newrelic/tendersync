@@ -60,19 +60,26 @@ class Tendersync::Session
     end
     sections    
   end
-  
+
+  def edit_form_for(section, edit_page)
+    edit_page.forms.each do |form|
+      document = Tendersync::Document.from_form(section,form)
+      return document unless document.document_id.nil?
+    end
+  end
   def pull_from_tender(*sections)
     sections = all_sections.keys if sections.empty?
     for section in sections do 
       documents(section).collect do |doc_url|
-        page =Tendersync::Document.from_form(section,edit_page_for(doc_url))
-        puts "Section: #{section}, page=#{page.inspect}"
-        doc = page.form_with(:action => /edit/)
+        edit_page = edit_page_for(doc_url)
+        doc = edit_form_for(section, edit_page)
+        puts "Section: #{section}, page=#{doc.inspect}"
         puts "   #{doc.permalink}"
         doc.save unless $dry_run
       end
     end
   end
+    
   # Print out a list of all documents
   def ls(*sections)
     sections = all_sections.keys if sections.empty?
