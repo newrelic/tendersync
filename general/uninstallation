@@ -1,0 +1,14 @@
+---------------------------- section ----------------------------
+general
+---------------------------- document_id ----------------------------
+1760
+---------------------------- title ----------------------------
+How do I uninstall the New Relic agent?
+---------------------------- permalink ----------------------------
+uninstallation
+---------------------------- keywords ----------------------------
+uninstall uninstallation
+---------------------------- body ----------------------------
+If you installed the agent as a plugin, execute this command to remove it:
+    script/plugin remove newrelic_rpm
+If you installed the plugin as a gem, remove all references to `newrelic_rpm` from your `environment.rb` file.

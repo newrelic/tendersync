@@ -1,0 +1,13 @@
+---------------------------- section ----------------------------
+general
+---------------------------- document_id ----------------------------
+633
+---------------------------- title ----------------------------
+Host names can be pretty ugly. How do I rename my hosts?
+---------------------------- permalink ----------------------------
+host-names-can-be-pretty-ugly-how-do-i-rename-my-hosts
+---------------------------- keywords ----------------------------
+
+---------------------------- body ----------------------------
+There isn't a way to change the host name, however you can create any number of "clusters" which you can name. For example, if hosts ey01-s00057 and ey01-s00058 are both part of a production tier, I can create a cluster called "Production" and add those two hosts to it.
+In all parts of RPM where you visualize hosts, any defined clusters will also show up.

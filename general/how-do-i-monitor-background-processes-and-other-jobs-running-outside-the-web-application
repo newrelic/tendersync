@@ -1,0 +1,24 @@
+---------------------------- section ----------------------------
+general
+---------------------------- document_id ----------------------------
+634
+---------------------------- title ----------------------------
+How do I monitor background processes and other jobs running outside the web application?
+---------------------------- permalink ----------------------------
+how-do-i-monitor-background-processes-and-other-jobs-running-outside-the-web-application
+---------------------------- keywords ----------------------------
+
+---------------------------- body ----------------------------
+We are still working on the API to allow you to monitor Rails components that aren't running in the web application.  Currently there are two ways to do this but these APIs are still evolving so these APIs may not work in future versions of the agent.
+
+The first way to do this is to set the 'monitor_daemons' flag to 'true' in newrelic.yml:
+    
+       monitor_daemons: true
+
+The drawback is that this will start the agent for all of your processes, including rake tasks, scripts, etc.
+
+The alternative is to manually fire up the agent at the start of a script. This is what we do when we want to monitor our own background jobs.
+
+    NewRelic::Agent.manual_start('ruby','process_orders_overnight')
+
+The parameters identify the environment and job name; you can use whatever you want.

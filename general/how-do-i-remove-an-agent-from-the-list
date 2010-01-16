@@ -1,0 +1,12 @@
+---------------------------- section ----------------------------
+general
+---------------------------- document_id ----------------------------
+632
+---------------------------- title ----------------------------
+How do I remove an agent from the list? 
+---------------------------- permalink ----------------------------
+how-do-i-remove-an-agent-from-the-list
+---------------------------- keywords ----------------------------
+
+---------------------------- body ----------------------------
+The list of agents is determined automatically by the connections to the server.  If you want to remove an agent from that list you should disable RPM by editing newrelic.yml, or uninstall the newrelic_agent plugin.

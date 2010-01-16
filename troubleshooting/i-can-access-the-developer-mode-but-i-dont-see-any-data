@@ -1,0 +1,14 @@
+---------------------------- section ----------------------------
+troubleshooting
+---------------------------- document_id ----------------------------
+618
+---------------------------- title ----------------------------
+I can access the Developer Mode but I don't see any data.
+---------------------------- permalink ----------------------------
+i-can-access-the-developer-mode-but-i-dont-see-any-data
+---------------------------- keywords ----------------------------
+
+---------------------------- body ----------------------------
+There is a bug in the developer edition that if you happen to set enabled to true and developer to true in the newrelic.yml file, you will not see any data unless you have a valid license key.
+
+When running the Developer Mode it's best to have enabled set to false.

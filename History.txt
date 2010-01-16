@@ -1,4 +1,13 @@
-== 1.0.4 2008-08-25
+== 1.0.6 2010-01-15
+
+* Merged some stuff from technoweenie
+* Cleaned up init file stuff
+
+== 1.0.5 2009-10-01
+
+* Bug fixes
+
+== 1.0.4 2009-08-25
 
 * Fix bug in index generation
 * Add option to override index permalink

@@ -1,0 +1,20 @@
+---------------------------- section ----------------------------
+troubleshooting
+---------------------------- document_id ----------------------------
+636
+---------------------------- title ----------------------------
+RPM prints messages when I start a rake task or console script. How can I prevent that?
+---------------------------- permalink ----------------------------
+rpm-prints-messages-when-i-start-a-rake-task-or-console-script-how-can-i-prevent-that
+---------------------------- keywords ----------------------------
+
+---------------------------- body ----------------------------
+This is fixed as of version 2.1.6 of the agent.
+If you are unable to update to the latest version, you can make the following modification to the method determine_environment_and_port in lib/newrelic/agent/agent.rb:
+
+def determine_environment_and_port
+   port = nil
+   @environment = :unknown
+
+   # Add the following line here:
+   return if $0 =~ /rake$|irb$/

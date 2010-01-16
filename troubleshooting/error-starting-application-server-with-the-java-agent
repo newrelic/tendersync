@@ -1,0 +1,20 @@
+---------------------------- section ----------------------------
+troubleshooting
+---------------------------- document_id ----------------------------
+2856
+---------------------------- title ----------------------------
+Error starting application server with the Java agent
+---------------------------- permalink ----------------------------
+error-starting-application-server-with-the-java-agent
+---------------------------- keywords ----------------------------
+java agent library failed init instrument zip opening
+---------------------------- body ----------------------------
+The path to the agent jar file must be fully qualified in the -javaagent JVM switch.  If the path is not correctly specified, this error will be thrown on application server startup and the JVM will exit:
+
+    Error opening zip file: newrelic.jar
+    Error occurred during initialization of VM
+    agent library failed to init: instrument
+
+To correct the issue, specify the full path to the newrelic.jar file in the -javaagent switch.  For example, if the newrelic.jar file is in a directory named newrelic inside the Tomcat home directory /home/tomcat, the switch should be specified as follows:
+
+`-javaagent:/home/tomcat/newrelic/newrelic.jar`

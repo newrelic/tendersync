@@ -1,0 +1,63 @@
+---------------------------- section ----------------------------
+general
+---------------------------- document_id ----------------------------
+638
+---------------------------- title ----------------------------
+How do I install the agent
+---------------------------- permalink ----------------------------
+how-do-i-install-the-agent
+---------------------------- keywords ----------------------------
+
+---------------------------- body ----------------------------
+## Install a copy of the Latest Agent
+
+You can install the latest released version of the Agent with the command:
+
+    script/plugin install http://newrelic.rubyforge.org/svn/newrelic_rpm
+
+This will export the plugin into your local directory.
+
+## Updating to the Latest Agent
+
+We recommend completely blowing away the old agent plugin before reinstalling. To do this for a SVN environment, execute the following commands:
+
+     cd vendor/plugins
+     svn rm newrelic_rpm
+     svn commit -m "upgrading newrelic" 
+
+
+For other source code control environments, you'll need to do something equivalent.
+
+Then, to upgrade to the latest agent, first update the plugin in your application by executing the following command:
+
+    script/plugin install http://newrelic.rubyforge.org/svn/newrelic_rpm --force
+
+Next, you'll need to double-check that your Agent configuration file (`config/newrelic.yml`) is up to date. To do this, you'll need to do a visual inspection of the default `newrelic.yml` file that lives in the Agent plugin folder (`vendor/plugins/newrelic_rpm/newrelic.yml`). Look for new configuration options that aren't in your `config/newrelic.yml` file.
+
+Finally, make sure to add the new plugin to your source code control system. For SVN, you would execute:
+
+    cd vendor/plugins
+    svn add newrelic_rpm
+    svn commit -m "installing latest version of newrelic"
+
+## Link to the Latest Agent
+
+You can create an `svn:externals` link to the agent which will ensure your New Relic agent is updated to the latest version everytime you check out or deploy your application.
+
+The installation command is similar to the normal “one time” export:
+
+    script/plugin install -x http://newrelic.rubyforge.org/svn/newrelic_rpm
+
+## Using an Earlier Agent Version 
+
+You can see earlier versions of the agent using this subversion URL:
+
+    http://newrelic.svn.beanstalkapp.com/rpm/projects/Agent/tags
+
+to install a previous version, first remove your current version using
+
+    script/plugin remove vendor/plugins/newrelic_rpm
+
+Then install the earlier version using the subversion export command. Do not use the plugin installation script.
+
+    svn export http://newrelic.svn.beanstalkapp.com/rpm/projects/Agent/tags/VERSION vendor/plugins/newrelic_rpm

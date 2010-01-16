@@ -43,6 +43,8 @@ class Tendersync::Runner
                                 one-time tasks).  Programmers only.
         create PERMALINK     -- create a new tender document with the specified permalink in the section
                                 specified by --section=... (must be only one.)
+                                
+Version #{Tendersync::VERSION}
 
     }.split(/\n/).each {|line| op.separator line.chomp }
     end
@@ -194,13 +196,13 @@ class Tendersync::Runner
     @sections
   end
   def settings
-    case
-    when @settings
-      return @settings 
-    when File.exists?(".tendersync")
-      File.open(".tendersync", "r") { |f| @settings = YAML.load(f) }
-    else
-      @settings = {}
+    return @settings if @settings
+    @settings = {}
+    for init_file in ['.tendersync', "#{ENV['HOME']}/.tendersync", "#{File.dirname(__FILE__)}/../../.tendersync"] do
+      if File.exists? init_file
+        File.open(init_file, "r") { |f| @settings = YAML.load(f) }
+        break
+      end
     end
     def @settings.save!
       File.open(".tendersync","w") do |f|

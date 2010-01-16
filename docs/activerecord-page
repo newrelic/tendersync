@@ -1,0 +1,52 @@
+---------------------------- section ----------------------------
+docs
+---------------------------- document_id ----------------------------
+646
+---------------------------- title ----------------------------
+Database Page
+---------------------------- permalink ----------------------------
+activerecord-page
+---------------------------- keywords ----------------------------
+performance ActiveRecord Hibernate ORM database
+---------------------------- body ----------------------------
+<a name="Overview"></a>
+## Overview
+
+For most web applications, how efficiently the application uses the database determines how well the application  performs.  Efficient development, however, depends on abstracting away from the complexities of  database schema and query construction, and focusing on what the application does and not on how it does it.  
+
+Database abstraction is provided by the ORM or Object-Relational Mapping layer--typically ActiveRecord in Ruby, Hibernate in Java--which maps object classes onto tables in a relational database.  This frees developers from worrying about many irrelevant details, greatly simplifying development, but not without a cost.  The abstraction can make it very difficult to tell exactly how your application is accessing the database, especially in a production environment.
+
+This is where RPM's Database page comes in very handy.   It provides three top-level graphs, with the ability to drill down into the details by simply clicking on items of interest 
+ 
+<a name="Total_Database_Time"></a>
+## Total Database Time Graph
+
+![Total Database Time Graph](http://s3.amazonaws.com/entp-tender-production/assets/1d04eed5ea2fd33e663a8f28e0e1964ed86b8061/TotalDatabaseTime_normal.png)
+
+This graph shows the percentage of real (wall clock) time your application’s spent on database read, write and save operations in the last half hour, averaged out by host instance. For more detail on how this is measured, see the documentation for the Home Page. It is theoretically possible for these numbers to exceed 100%, but in most cases you’ll be experiencing performance problems before those numbers are reached.
+
+Hovering your mouse pointer over any of the data points will give you a more detailed breakdown of the data; clicking on any of the lines will take you to a graph for that specific database operation.
+
+<a name="Database_Response_Time"></a>
+## Database Response Time Graph 
+
+This chart shows the average response time for all find/save/destroy operations. Keep an eye out for trends here. If overall response times for the database is increasing, this could imply an overall database problem, as opposed to a problem with a specific query or controller action.
+
+<a name="Top_Database_Consumers"></a>
+## Top Database Consumers 
+
+If you think of the database as a resource that is used by the application, then this graph shows the top 15 consumers of this database resource, broken out by class (table) and operation. Again, we measure wall clock time percentage as a proxy for database resource consumption.
+
+For example a database-backed class that has fast query times (say, 5 milliseconds) but is called an awful lot (say 100 times per second or 6000 times per minute) would have a time percentage value of 50%. (100 calls per second * 5 ms per call / 1000 milliseconds = 50%).
+
+Click on any of the bars in this chart to see drill down information for this operation.
+
+### Response Time and Throughput Chart
+
+This chart shows historical response time and load (call volume) for the selected operation. You can drill down to further analyze this data by clicking on this chart.
+
+### Callers Breakdown Chart 
+
+When you find an operation that is consuming a lot of database time, a natural question is, “who is calling this operation most often?” This chart answers exactly that question, broken out by controller action. Each segment in this chart maps to a controller action, with segment size mapping to call volume.
+
+For example, if you see a segment titled “PropertiesController#index”, and a value of “25.32 cpm”, it means that, for the selected time window, the index action in PropertiesController, called your selected operation an average of 25.32 times per minute.

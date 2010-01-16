@@ -1,0 +1,52 @@
+---------------------------- section ----------------------------
+docs
+---------------------------- document_id ----------------------------
+645
+---------------------------- title ----------------------------
+Controllers Page
+---------------------------- permalink ----------------------------
+controllers-page
+---------------------------- keywords ----------------------------
+controllers 
+---------------------------- body ----------------------------
+<a name="Overview"></a>
+## Overview
+
+The performance of your controllers govern your application’s response times. So it is important to monitor and understand the performance of each of your controller actions. The controllers page presents this critical performance data to you, and even provides you with drill down information to tell you what you need to do to improve the performance of your slowest web pages.
+
+You should see the documentation for the [Agent Overview Page](agent-overview-page) for important information on navigation and time window selection.
+
+<a name="Application_Throughput"></a>
+## Application Throughput Graph
+
+This graph shows the aggregate load (call rate) for all of the controller actions in your application in Calls per Minute (cpm).
+
+Also, overlaid on this graph is the maximum mongrel queue length for your cluster. We graph the maximum or peak mongrel queue length for a given time segment, but you can mouse over a given segment to see the average mongrel queue length (which is usually much smaller).
+
+The mongrel queue length is an important metric to watch – if it grows to be consistently large (>10) then it means that your mongrels can't keep up with the http load that is placed on them.
+Application Response Time Graph 
+
+The graph on the top right shows the overall response time for all of the controller actions in your application. Also on the same graph is the overall response time for the dispatcher, which is usually 10-30 milliseconds longer than the controller response time.
+
+The dispatcher parses your application’s routes, to determine which controller action should handle a given a http request. Depending on how large or complex your routes are, this may become a significant portion of your application’s response time, so it is worth paying attention to. To reduce the dispatcher’s impact on your application, you should simplify your routes.
+
+<a name="Slowest_Controller_Actions"></a>
+## Slowest Controller Actions Bar Graph
+
+The bar char to the bottom left shows your top 20 slowest controller actions by response time, over the time window you have selected (by default, that is the last 30 minutes).
+
+While there are often many routes to a given controller action, we report on a given action’s performance by its canonical path, which is /#{controller_name}/#{action_name}.
+
+Click on any of the bars in this char to see drill down information for the selected controller action, including performance breakdown, and response time and load for that particular action.
+
+<a name="Performance_Breakdown"></a>
+## Performance Breakdown Pie Chart
+
+The pie chart breaks down the performance of the selected controller action, in aggregate, over the period of time you have selected.
+
+You can click on a segment inside the pie chart, and you will be taken to the Metric Analyzer Page to further analyze the performance of the metric whose segment you clicked on.
+
+<a name="Response_Time_and_Throughput"></a>
+## Response Time and Throughput Chart
+
+When you select a controller action in the bar graph to the left, the historical response time and load (call volume) is presented in the chart to the bottom right. You can further analyze the performance of this controller action by clicking on this chart, and you will be taken to the Metric Analyzer page.

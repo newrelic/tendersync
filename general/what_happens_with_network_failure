@@ -1,0 +1,18 @@
+---------------------------- section ----------------------------
+general
+---------------------------- document_id ----------------------------
+1223
+---------------------------- title ----------------------------
+What happens when the New Relic Agent can't connect to the RPM Server?
+---------------------------- permalink ----------------------------
+what_happens_with_network_failure
+---------------------------- keywords ----------------------------
+agent server communicate network
+---------------------------- body ----------------------------
+_When using RPM it sends performance data once every minute to collector.newrelic.com. How would our application be affected when rpm.newrelic.com happens to be down?_
+
+Your application will not be affected.  While the network is down or the server unavailable, you will see in the RPM UI at rpm.newrelic.com that your applications are not reporting data.  This is most evident in the CPU and memory graphs where there will be gaps where data is missing.  The agent will continue attempting to reconnect and when it succeeds you will again see data appearing in the UI.
+
+It's important to note that during the time the agent is unable to communicate with the server it is still collecting data, and once it is able to connect again it will upload the data, filling in the missing segment so there won't be any confusion about whether your application was down or just not reporting data.  To save memory, the data will be aggregated and averaged over the period so you will see flat bars and graphs over the period when it was unable to communicate with the server.
+
+We had an incident recently where a combination of network failure and server misonfigurations exposed a weakness in the MRE standard library for DNS lookups that affected some customers. A massive router failure at one of the upstream network providers, in combination with a temporary misconfiguration of the DNS TTL, as well as the lack of a secondary offsite DNS server caused some Rails applications to experience stalls. The absence of any one of these circumstances would have prevented any impact on the application, and we immediately implemented redundant DNS servers and corrected the TTL, ensuring that this won't happen again.

@@ -1,0 +1,24 @@
+---------------------------- section ----------------------------
+general
+---------------------------- title ----------------------------
+Frequently Asked Questions Table of Contents
+---------------------------- permalink ----------------------------
+general-table-of-contents
+---------------------------- keywords ----------------------------
+toc index
+---------------------------- body ----------------------------
+
+### [How do I install the agent](how-do-i-install-the-agent)
+* [Install a copy of the Latest Agent](how-do-i-install-the-agent#)
+* [Updating to the Latest Agent](how-do-i-install-the-agent#)
+* [Link to the Latest Agent](how-do-i-install-the-agent#)
+* [Using an Earlier Agent Version](how-do-i-install-the-agent#)
+
+### [How do I set up the agent to notify RPM of deployments?](capistrano_integration)
+* [Installation ##](capistrano_integration#)
+* [Additional Configuration for `newrelic_rpm` gem ##](capistrano_integration#)
+* [Custom Capistrano Configuration ##](capistrano_integration#)
+
+### [What environments do you support for monitoring?](compatibility)
+* [Agent Compatibility Guide](compatibility#Agent_Compatibilty)
+

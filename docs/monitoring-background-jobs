@@ -1,0 +1,66 @@
+---------------------------- section ----------------------------
+docs
+---------------------------- document_id ----------------------------
+1992
+---------------------------- title ----------------------------
+Monitoring Background Processes and Daemons
+---------------------------- permalink ----------------------------
+monitoring-background-jobs
+---------------------------- keywords ----------------------------
+background backgroundrb daemon
+---------------------------- body ----------------------------
+Starting in version 2.9.0 the RPM Agent can be used to capture information on background jobs run outside of an HTTP dispatcher.  
+
+<a name="Showing_Background_Jobs"></a>
+## Showing Background Jobs and Daemons in RPM
+
+Background processes instrumented in RPM will generally be assigned to their own application in the RPM UI.  In the home page you will see the application listed with its CPU utilization and memory consumption.  Since response time and throughput refer to HTTP requests you will only see zeros for these statistics.
+
+The [Database Page](activerecord-page) for the background application will show the aggregated statistics for the models used by the application.  The controllers page will not have any information since no controller actions are being invoked.
+
+Errors will not be shown by default but you can add a custom API call to send them to RPM.  Transaction Traces will not be captured.  Deployments will be reported if you have a RAILS_ENV corresponding to the background application.
+
+<a name="Using_The_Agent"></a>
+## Using the Agent 
+
+To use the agent in a script, add custom instrumentation, make any necessary changes in newrelic.yml, and start the agent in your script.
+
+If your background application is a Rails app that runs in a dedicated RAILS_ENV that is already set up to be monitored with RPM, you just need to add custom instrumentation.  You can skip the other steps.
+
+*Note* Tracing short-lived programs and jobs that quickly exit will not be practical.  In order to monitor a job it has to be executed in a long-running process in order for the agent to be able to get the data back to the server before the daemon exits.  This happens every 60 seconds so if your monitored job exits quickly or restarts often, you'll lose any data collected up to 60 seconds before the process exits.
+
+### Add Custom Instrumentation
+
+Without additional configuration, the agent will capture metrics on the CPU utilization, memory, and database activity (if using one of the supported ORM's such as ActiveRecord).  Using the Agent API, you can additionally define [Custom Metrics](custom-metric-collection) for use in [Custom Dashboards](custom-dashboard-specification) as well as [capture and report errors](agent-api#Recording_caught_exceptions) that would not otherwise be captured by RPM.
+
+Refer to the [Custom Metrics Documentation](custom-metric-collection) for details on how to add instrumentation to your background application.
+
+### Configure `newrelic.yml`
+
+If your background app is not a Rails application already set up with RPM monitoring, you need to copy your `newrelic.yml` file to the directory where you launch the background job.  You can also put it in the `config` subdirectory.
+
+If your background application is a rails application that corresponds to an existing RAILS_ENV value, then you should add this environment value to the `newrelic.yml` file along with the production, development, and staging sections.  
+
+If your background application is not a Rails application, the agent will check RUBY_ENV to determine what section of `newrelic.yml` to use.  If RUBY_ENV is not defined, it will default to `development`.
+
+The new section will inherit all its settings from the common section, but you will want to define one attribute, `app_name` with the name of the background job.  It might look something like this for a `RAILS_ENV` of 'background':
+
+    background:
+      enabled: true
+      app_name: 'Background Jobs'
+
+
+### Start the Agent
+
+The agent normally detects when it should be started by determining if a web dispatcher such as Mongrel or Passenger is running.  If one is not running it assumes a rake task or migration is being run and does not start up or collect metrics.
+
+To start the agent in background processes you can do one of the following:
+
+   # Invoke `manual_start` with <tt>:app_name => 'Application Name'</tt>
+   # Set `agent_enabled` to true and define `app_name` in the `newrelic.yml` file.  This is helpful if you have a dedicated RAILS_ENV for your background job.
+
+
+<a name="Monitoring_Ruby_Daemons"></a>
+## Monitoring Backgroundrb and other Ruby Daemons
+
+** Work in progress, check back later. **

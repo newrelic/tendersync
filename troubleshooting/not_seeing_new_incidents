@@ -1,0 +1,15 @@
+---------------------------- section ----------------------------
+troubleshooting
+---------------------------- document_id ----------------------------
+844
+---------------------------- title ----------------------------
+I am not seeing new incidents
+---------------------------- permalink ----------------------------
+not_seeing_new_incidents
+---------------------------- keywords ----------------------------
+incident
+---------------------------- body ----------------------------
+Incidents are evaluated every 1 hour for Silver and every 5 minutes for Gold accounts. 
+New incidents are only created for an application when there are no currently open incidents
+Adjust your application thresholds so that all application traffic lights turn green. Wait 15 minutes. View the application incidents and verify that there are no open threshold incidents. Lower one of the threshold settings to a value that should cause an incident to fire and wait the appropriate interval.
+ A new incident should open up, and if you have opted into incident emails you should receive one shortly.

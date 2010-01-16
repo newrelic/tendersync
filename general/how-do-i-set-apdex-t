@@ -1,0 +1,18 @@
+---------------------------- section ----------------------------
+general
+---------------------------- document_id ----------------------------
+1939
+---------------------------- title ----------------------------
+How do I set Apdex "T"?
+---------------------------- permalink ----------------------------
+how-do-i-set-apdex-t
+---------------------------- keywords ----------------------------
+Apdex
+---------------------------- body ----------------------------
+The Apdex "T" value defines the response time in seconds where users of the site will be satisfied. The default in RPM is 1.0 seconds, however this value can be changed. To change this value, go to the newrelic.yml file in your app's config directory and edit the parameter "apdex_t".
+
+If your agent is older than 2.8.9, you may not have an entry for defining Apdex T in your newrelic.yml file. This can be easily rectified by adding the following line to the file:
+
+      apdex_t: 1.0
+
+There should be two spaces of indentation in front of the definition.

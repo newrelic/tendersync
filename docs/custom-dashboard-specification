@@ -1,0 +1,244 @@
+---------------------------- section ----------------------------
+docs
+---------------------------- document_id ----------------------------
+1184
+---------------------------- title ----------------------------
+Custom Dashboard Specification
+---------------------------- permalink ----------------------------
+custom-dashboard-specification
+---------------------------- keywords ----------------------------
+dashboard custom liquid metric data chart
+---------------------------- body ----------------------------
+<a name="RPM_Custom_Dashboards"></a>
+## RPM Custom Dashboards
+
+RPM custom dashboards allow users to visualize custom metric data in charts and html tables.  Dashboards are written using a custom version of Liquid, a templating language created for Shopify.  Dashboard code looks like normal html interspersed with small blocks of code.  <a href="http://wiki.shopify.com/Liquid" target="_blank">The Liquid Wiki</a> has additional information about how to write templates.
+
+Every Liquid dashboard has access to four context variables, **account**, **application**, **metrics**, and **applications**.  The account variable is an **Account** drop for the current account, and the application variable points to the current application selection.  The metrics variable allows access to metrics for the current application and the applications variable can be used to access the applications belonging to the current account.
+
+ <a name="Drops"></a>
+## Drops
+
+Drops are secure wrappers around New Relic objects and methods accessible from Liquid templates.  Drops expose a limited number of method calls available on each object in a Liquid template, as specified below.
+
+### Account
+
+#### Methods
+
++   **id** : the integer id of the account
++   **name** : the name of the account
++   **applications** : a collection proxy for the account applications.  Applications can be looked up using the following syntax:
+
+`app = account.applications['The app name']`
+
+The return value of the lookup is an **Application** drop.
+
+### Application
+
+An application drop represents an application.
+
+#### Methods
+
+*   **id** : the integer id of the application 
+*   **name** : the name of the application
+*   **health_status** : returns a 1, 2 or 3 which indicates the overall health of the application.  The <a href="#traffic_light">traffic_light</a> filter can be used to render a traffic light from the health_status integer value.
+*   **metrics** : an **ApplicationMetrics** drop which can be used to look up metrics.
+
+### Application Metrics
+
+An application metrics drop is a collection proxy that can be used to find metrics.
+
+`{{ application.metrics['metric name'] }}`
+
+You can also access the metrics for the current account selection with just the metrics variable.
+
+`{{ metrics['metric name'] }}`
+
+The metrics drop can be used to lookup a specific metric like in the above sample, or it can retrieve multiple metrics using a regular expression match:
+
+`{% assign metrics = application.metrics.find_by_regexp['account'] %}`
+
+The return value of a single metric lookup is an *application metric* drop.  The return value of a find_by_regexp invocation is an array of *application metric* drops.
+
+The **metric selector** can be used to browse all available metrics and insert metric names or regexp's into your custom dashboard for use in chart tags or filters.  If you have added custom metrics via <a href="http://support.newrelic.com/faqs/docs/custom-metric-collection" target="_blank">custom method tracers</a>, you will see them in the metric selector.
+
+### Application Metric
+
+An **ApplicationMetric** drop represents a single application metric and can be used to fetch metric values.  Metric value functions like **call_count**, **time_percentage_by_host** and **average_value_by_host** can be directly invoked on this drop.  Metric value functions are also used to as a parameter to chart tags to specify the value to display in the chart.  The return value of a value function invocation is a *MetricValue*.
+
+#### Examples:
+
+`{{ application.metrics['Memory/Physical'].average_value_by_host.value }}`
+
+`{{ metrics['CPU/User Time'].time_percentage_by_host.value }}`
+
+#### Methods
+
++   **id** : the integer id of the metric
++   **name** : the name of the metric
+
+<a name="value_functions"></a>
+
+#### Value Methods
+Some of the value methods return the same data for a given metric, but with different units.  Units, if any, are listed in parentheses after the value method.
+
++   **total_value** (ms) - the total value of the metric for each period within the time window. Use the value_suffix attribute to set the suffix
++   **average_value**, **average_response_time** (ms) - the average value of the metric for each period within the time window.
++   **count**, **call_count** - the number of data points for the metric value (e.g. # of method invocations)
++   **requests_per_minute** (rpm), **calls_per_minute** (cpm), **errors_per_minute** (epm) - the number of requests per minute
++   **min_value**, **min_call_time** (ms) - the smallest metric value collected during the period.
++   **max_value**, **max_call_time** (ms) - the largest metric value collected during the period.
++   **time_percentage** (%) - useful for DB and CPU percentage utilization, added across all applicable hosts.
++   **time_percentage_by_host** (%) - time percentage averaged across the # of hosts.
++   **average_value_by_host** - the raw value averaged across the # of hosts.
+
+<a name="Filters"></a>
+## Filters
+
+Filters are methods in Liquid.  They always take their first parameter as the output of the left side of the filter (before the '|').  The <a href="http://wiki.shopify.com/Liquid#Filters" target="_blank">Liquid Wiki on Filters</a> has more information on using filters.
+
+<a name="traffic_light"></a>
+### traffic_light(input, caution_threshold = 1, danger_threshold = 2)
+
+Renders a traffic light image by comparing the input value against upper and lower thresholds.  If the danger threshold is exceeded, the light will be red, otherwise if the caution threshold is exceeded the light will be yellow, otherwise it will be green.  The default caution and danger threshold values are 1 and 2.
+
+#### Examples:
+
+`{{ application.health_status | traffic_light }}`
+
+`{{ application.metrics['Memory/Physical'].average_value_by_host.value | traffic_light:800,1300 }}`
+
+### link_to_application(input, application)
+
+Generates a link to an application.  The input value is the link text.
+
+`{{ 'current application' | link_to_application:application }}`
+
+### link_to_dashboard(input, dashboard name or id)
+
+Generates a link to a custom dashboard.  The input value is the link text.
+
+`{{ 'For more detail see this dashboard' | link_to_dashboard:'My Dashboard' }}`
+
+### round(input, places = 0)
+
+Rounds a value.
+
+`{{ 109.45 | round:1 }}`
+
+### percentage(input)
+
+Turns a value to a percentage by multiplying it by 100 and rounding to two places.
+
+`{{ 0.87 | percentage }}`
+
+### Arithmetic filters 
+
+This filters are core features of Liquid:
+
+<pre>
+# addition
+plus(input, operand)
+    
+# subtraction
+minus(input, operand)
+    
+# multiplication
+times(input, operand)
+
+# division
+divided_by(input, operand)
+</pre>
+
+[Liquid Filters](http://wiki.shopify.com/FilterReference)
+
+<a name="Tags"></a>
+## Tags
+
+Tags in Liquid are used to create logic and other custom behavior in your custom dashboards.  <a href="http://wiki.shopify.com/Liquid#Tags" target="_blank">The Liquid Wiki page on Tags</a> has more information about built in tags.  The New Relic custom tags listed below are used to display charts and alter the time window.
+
+### Chart Tags
+
+RPM dashboards support chart rendering using a set of custom tags.
+
+### Common Chart Attributes
+
++   **title** : the chart title
++   **subtitle** : the subtitle
++   **value** : a <a href="#value_functions">metric value function</a>
++   **application** : either an application id or a name.  This can be used to override the selected application.
++   **since** : changes the time window used for the metric data query.  See the <a href="#since_block">since block</a>.
++   **hide_legend** : hides the graph legend when set to true
++   **limit** : limits the number of metrics matched by a regular expression metric match
++   **link_to** : a url that will become the drilldown link for the chart
++   **link_to_dashboard** : a dashboard name or id.  The chart will hyperlink to the given dashboard.
++   **caution_threshold** : a number value representing a caution threshold.  A yellow horizontal line will be drawn on the graph at this value.
++   **danger_threshold** : a number value representing a danger threshold.  A red horizontal line will be drawn on the graph at this value.
++   **value_suffix** : a suffix to be appended to all metric values
++   **simple_tooltip**: when true, the tooltip is just the value and suffix
+
+#### Referencing metrics
+
+Metric data can be referenced in two ways - using the name of a specific metric, or providing a regular expression that matches multiple metrics.  Either the **metric** or the **regexp** attribute (but not both) should be used in each chart tag to set the metric source.
+
++   **metric** : a string that matches a single metric.  The value should be in single quotes and it should not be escaped.
++   **regexp** : a regular expression that matches metrics.  This expression should be wrapped in quotes and it should not be escaped.
+
+### line_chart
+
+`{% line_chart value:time_percentage metric:'CPU/User Time' title:'CPU' %}`
+
+![line_chart.jpg](http://s3.amazonaws.com/entp-tender-production/assets/086b8c5c886f44fefb667293d9d6b032e4fac8cd/line_chart_normal.jpg)
+
+### pie_chart
+
+`{% pie_chart regexp:'ActiveRecord/(save|find|destroy)' title:'Active Record' value:time_percentage %}`
+
+![pie_chart.jpg](http://s3.amazonaws.com/entp-tender-production/assets/6767cf1e86ca4a62c5212174da6bb2008b29f796/pie_chart_normal.jpg)
+
+
+### horizontal_bar_chart
+
+`{% horizontal_bar_chart value:call_count title:'Active Record' regexp:'ActiveRecord/(save|find|destroy)' %}`
+
+![horizontal_bar.jpg](http://s3.amazonaws.com/entp-tender-production/assets/4a3c0927246f4a9cdf07ebcc317dc2f68687b27e/horizontal_bar_normal.jpg)
+
+### compare_with_last_week_chart
+
+`{% compare_with_last_week_chart metric:'ActiveRecord/all' title:'Week to Week Comparison' value:time_percentage %}`
+
+![comparison.jpg](http://s3.amazonaws.com/entp-tender-production/assets/87ec3f8eb8fc7ff2de2c053cb94c0f019eefa353/comparison_normal.jpg)
+
+### daily_summary_chart
+
+`{% daily_summary_chart metric:'Controller' title:'Daily Summary Chart' value:call_count %}`
+
+![daily.jpg](http://s3.amazonaws.com/entp-tender-production/assets/88de52365d298867966520550b29b5b22419b4dc/daily_normal.jpg)
+
+### weekly_summary_chart
+
+`{% weekly_summary_chart metric:'Controller' title:'Weekly Summary Chart' value:call_count %}`
+
+![weekly.jpg](http://s3.amazonaws.com/entp-tender-production/assets/4018021594b377e3cc39b1ca84686eed10371cd9/weekly_normal.jpg)
+
+<a name="Blocks"></a>
+## Blocks
+
+Blocks in Liquid are tags that are used to create logic in your custom dashboard.  There are many blocks built in to Liquid (<a href="http://wiki.shopify.com/Liquid#Tags" target="_blank">available here</a>) as well as the custom New Relic 'since' block.
+
+<a name="since_block"></a>
+### since
+ 
+`since` is a block tag used to specify a time window for a set of queries. This tag must be followed by a matching `endsince` tag. All metric data value and chart data queries occurring within a `since` tag will be scoped to the given time range.  Charts will override this time window if the `since` attribute is specified, but this tag is useful for scoping an entire dashboard to a particular time window.  It is also the only way to change the time window scope of a metric value query.
+
+#### Examples:
+
+<pre>
+{% since midnight %} 
+  {{ application.metrics['Memory/Physical'].average_value_by_host.value }} 
+{% endsince %}
+
+{% since 3.hours.ago %} 
+  {% line_chart value:time_percentage metric:'CPU/User Time' title:'CPU Last 3 hours' %} 
+{% endsince %}
+</pre>

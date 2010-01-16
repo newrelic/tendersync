@@ -1,0 +1,21 @@
+---------------------------- section ----------------------------
+docs
+---------------------------- document_id ----------------------------
+647
+---------------------------- title ----------------------------
+Page Volume Page
+---------------------------- permalink ----------------------------
+page-volume-page
+---------------------------- keywords ----------------------------
+
+---------------------------- body ----------------------------
+<a name="Overview"></a>
+## Overview
+
+What pages are being used most often in my application? A simple but important question, and RPM provides a simple answer. In New Relic fashion, RPM also provides you the detailed drill down information you need in real time.
+
+For information on navigation, or time window or agent selection, check out the documentation in the Agent Overview Page. For information on how RPM measures controller actions, check out the documentation on our Controllers Page.
+
+RPM does not see or measure the performance of page requests that are cached at the web server tier and never make it through to your application--it measures dynamic page requests only.
+
+You can click on any of the bars in the overview bar char to see detailed information about the performance history and breakdown of any of the displayed pages.

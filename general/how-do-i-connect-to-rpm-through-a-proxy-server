@@ -1,0 +1,22 @@
+---------------------------- section ----------------------------
+general
+---------------------------- document_id ----------------------------
+631
+---------------------------- title ----------------------------
+How do I connect to RPM through a Proxy Server? 
+---------------------------- permalink ----------------------------
+how-do-i-connect-to-rpm-through-a-proxy-server
+---------------------------- keywords ----------------------------
+
+---------------------------- body ----------------------------
+In the latest version of the plugin you can configure proxy server settings by editing this section of your newrelic.yml file, or adding these settings if you have an older newrelic.yml.
+
+  # Proxy settings for connecting to the RPM server.
+  #
+  # If a proxy is used, the host setting is required.  Other settings are optional.  Default
+  # port is 8080.
+  #
+  proxy_host: proxy.sample.com
+  proxy_port: 8080
+  proxy_user: user
+  proxy_pass: password

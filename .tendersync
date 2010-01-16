@@ -2,11 +2,9 @@
 groups: 
 - - Installation and configuration
   - /install|config|custom/i
-- - Page by page tour of RPM
-  - / page$/i
+- - How Tos
+  - /how/i
 - - Advanced topics
   - //
-docurl: http://support.newrelic.com
+docurl: http://mycompany.tenderapp.com
 depth: 1
-username: bkayser@newrelic.com
-password: Bell10t

@@ -1,0 +1,20 @@
+---------------------------- section ----------------------------
+general
+---------------------------- document_id ----------------------------
+616
+---------------------------- title ----------------------------
+How do I prevent a controller from being instrumented? 
+---------------------------- permalink ----------------------------
+blocking-instrumentation
+---------------------------- keywords ----------------------------
+ignore block actions
+---------------------------- body ----------------------------
+In the controller class, add the following line:
+    newrelic_ignore
+to ignore all actions, or
+    newrelic_ignore :only => [... actions ...] | :except => [... actions ...]
+to ignore specific actions.
+
+Keep in mind this will introduce a dependency on the New Relic Agent which might not otherwise be there.  To avoid the hard link to the agent you can use this notation to block all actions of a controller:
+
+    write_inheritable_attribute('do_not_trace', true)
