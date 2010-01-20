@@ -41,8 +41,9 @@ class Tendersync::Runner
         post PATTERN         -- post the matching documents to tender; use /regexp/ or glob
         irb                  -- drops you into IRB with a tender session & related classes (for hacking/
                                 one-time tasks).  Programmers only.
-        create PERMALINK     -- create a new tender document with the specified permalink in the section
-                                specified by --section=... (must be only one.)
+        create PERMALINK [ title ]
+                             -- create a new tender document with the specified permalink in the section
+                                specified by --section=... (must be only one.) 
                                 
 Version #{Tendersync::VERSION}
 
