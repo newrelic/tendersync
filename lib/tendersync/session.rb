@@ -73,7 +73,6 @@ class Tendersync::Session
       documents(section).collect do |doc_url|
         edit_page = edit_page_for(doc_url)
         doc = edit_form_for(section, edit_page)
-        puts "Section: #{section}, page=#{doc.inspect}"
         puts "   #{doc.permalink}"
         doc.save unless $dry_run
       end
