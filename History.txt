@@ -1,3 +1,8 @@
+== 1.0.7 2010-01-20
+
+* Merged title option for create from Ross MacDonald
+* Merged fix for mechanize problem from Ijonas Kisselbach
+
 == 1.0.6 2010-01-15
 
 * Merged some stuff from technoweenie
