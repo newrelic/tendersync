@@ -6,5 +6,5 @@ module Tendersync
   autoload :Runner,   'tendersync/runner'
   autoload :Session,  'tendersync/session'
 
-  VERSION = '1.0.7'
+  VERSION = '1.0.8'
 end
