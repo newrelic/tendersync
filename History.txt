@@ -1,3 +1,7 @@
+== 1.0.9 2010-03-03
+
+* Links to sections changed so the all_sections was not working.
+
 == 1.0.8 2010-03-02
 
 * Removed some deprecated usage of mechanize

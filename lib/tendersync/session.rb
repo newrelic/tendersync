@@ -53,7 +53,7 @@ class Tendersync::Session
   def all_sections
     sections = {}
     get("#{@site}/dashboard/sections").links.each do | link |
-      if link.href =~ %r{/dashboard/sections/(.*)/edit$}
+      if link.href =~ %r{/faqs/([^/]*)$}
         name = $1
         sections[name] = link.text
       end
