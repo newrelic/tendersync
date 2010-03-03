@@ -3,7 +3,7 @@ class Tendersync::Session
   def initialize(site, user, pass)
     @username = user
     @password = pass
-    @agent = WWW::Mechanize.new { |a| a.auth(user, pass) }
+    @agent = Mechanize.new { |a| a.auth(user, pass) }
     @site       = site
     @login_site = "#{site}/login"
   end
@@ -28,7 +28,7 @@ class Tendersync::Session
     login
     begin
       page = @agent.get(url)
-    rescue WWW::Mechanize::ResponseCodeError => e
+    rescue Mechanize::ResponseCodeError => e
       raise Tendersync::Runner::Error, "Unable to get #{url}"
     end
     def page.links_like(r)
