@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'optparse'
-require 'mechanize'
 require 'yaml'
 
 class Tendersync::Runner
