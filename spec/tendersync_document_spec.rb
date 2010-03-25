@@ -12,8 +12,8 @@ describe Tendersync::Document do
     doc = Tendersync::Document.load("doc", StringIO.new(@doc_source))
     Tendersync::Document.stubs(:each).yields(doc)
     index.refresh_index
-    puts index.to_s
-    index.body.should =~ /baba/
+    index.body.should =~ /\* How to Fix it/
+    index.body.should =~ /###/
   end
   
   it "should load from a file" do
@@ -35,9 +35,11 @@ describe Tendersync::Document do
   
   it "should load from a form" do
     fields = { 'faq[title]' => 'title!', 'faq[body]' => "body by\nbill"}.collect do | key, value |
-      WWW::Mechanize::Form::Field.new(key, value)
+      f = Mechanize::Form::Field.new(key, value)
+      f.name = key
+      f
     end
-    form = stub(:action => '/faqs/123/edit', :fields => fields) 
+    form = stub(:action => '/faqs/123/edit', :fields => fields)
     doc = Tendersync::Document.from_form("doc", form)
     doc.title.should == "title!"
     doc.document_id.should == '123'

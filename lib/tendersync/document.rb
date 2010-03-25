@@ -119,6 +119,9 @@ class Tendersync::Document
       end
     }
     new(values)
+  rescue => e
+    puts e.backtrace.join("\n  ")
+    raise
   end
   def to_form(form)
     form.fields.each { |tf|
